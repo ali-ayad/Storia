@@ -4,6 +4,7 @@ import type React from "react";
 import { useState } from "react";
 import { Search, User, Menu, ChevronDown, X } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation"; // ✅ import usePathname
 import { Input } from "./ui/input";
 import {
   DropdownMenu,
@@ -18,6 +19,8 @@ export default function Navigation() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const pathname = usePathname(); // ✅ get current path
+
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -26,13 +29,9 @@ export default function Navigation() {
     setIsSearchOpen(!isSearchOpen);
   };
 
-  // const handleSearchSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (searchQuery.trim()) {
-  //     setIsSearchOpen(false);
-  //     setSearchQuery("");
-  //   }
-  // };
+  const isActive = (href: string) => {
+    return pathname === href;
+  };
 
   return (
     <header className="border-b border-border/20 bg-background/90 backdrop-blur-md sticky top-0 z-50 shadow-sm shadow-black/20">
@@ -48,23 +47,26 @@ export default function Navigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="hover:text-primary transition-colors">
+            <Link
+              href="/"
+              className={`transition-colors ${isActive("/") ? "text-primary font-semibold" : "text-muted-foreground hover:text-primary"}`}
+            >
               HOME
             </Link>
             <Link
               href="/authors"
-              className="text-muted-foreground hover:text-primary transition-colors"
+              className={`transition-colors ${isActive("/authors") ? "text-primary font-semibold" : "text-muted-foreground hover:text-primary"}`}
             >
               AUTHORS
             </Link>
             <Link
               href="/stories"
-              className="text-muted-foreground hover:text-primary transition-colors"
+              className={`transition-colors ${isActive("/stories") ? "text-primary font-semibold" : "text-muted-foreground hover:text-primary"}`}
             >
               STORIES
             </Link>
 
-            {/* ShadCN Dropdown for Genres */}
+            {/* Genres Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors cursor-pointer">
                 GENRES
@@ -101,28 +103,7 @@ export default function Navigation() {
                 className={`absolute right-0 top-0 flex items-center h-10 transition-all duration-300 overflow-hidden ${
                   isSearchOpen ? "w-64 opacity-100" : "w-0 opacity-0"
                 }`}
-              >
-                {/* <form
-                  onSubmit={handleSearchSubmit}
-                  className="flex w-full items-center justify-center bg-card border border-border/20 rounded px-2 py-1 shadow-sm"
-                >
-                  <Input
-                    type="text"
-                    placeholder="Search..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="flex-1"
-                    autoFocus
-                  />
-                  <button
-                    type="button"
-                    onClick={toggleSearch}
-                    className="text-muted-foreground cursor-pointer p-1"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </form> */}
-              </div>
+              />
             </div>
 
             <Link href="/login">
@@ -143,41 +124,20 @@ export default function Navigation() {
         {isMobileMenuOpen && (
           <div className="md:hidden mt-4 pb-4 border-t border-border/20">
             <div className="flex flex-col space-y-4 pt-4">
-              <Link
-                href="/"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-foreground hover:text-primary transition-colors"
-              >
-                HOME
-              </Link>
-              <Link
-                href="/authors"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                AUTHORS
-              </Link>
-              <Link
-                href="/stories"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                STORIES
-              </Link>
-              <Link
-                href="/genres/epic-fantasy"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                GENRES
-              </Link>
-              <Link
-                href="/blog"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                BLOG
-              </Link>
+              {["/", "/authors", "/stories", "/genres/epic-fantasy", "/blog"].map((link) => (
+                <Link
+                  key={link}
+                  href={link}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`transition-colors ${isActive(link) ? "text-primary font-semibold" : "text-muted-foreground hover:text-primary"}`}
+                >
+                  {link === "/" ? "HOME" :
+                   link === "/authors" ? "AUTHORS" :
+                   link === "/stories" ? "STORIES" :
+                   link === "/genres/epic-fantasy" ? "GENRES" :
+                   "BLOG"}
+                </Link>
+              ))}
             </div>
           </div>
         )}
