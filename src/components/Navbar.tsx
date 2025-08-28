@@ -35,7 +35,7 @@ export default function Navigation() {
   // };
 
   return (
-    <header className="border-b border-border/20 bg-background/90 backdrop-blur-md sticky top-0 z-50 shadow-lg shadow-black/20">
+    <header className="border-b border-border/20 bg-background/90 backdrop-blur-md sticky top-0 z-50 shadow-sm shadow-black/20">
       <div className="container mx-auto px-6 py-6">
         <nav className="flex items-center justify-between relative">
           {/* Logo */}
