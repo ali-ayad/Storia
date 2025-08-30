@@ -9,9 +9,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link href="/" className="text-3xl font-bold tracking-wider text-primary">
-            FANTASY
-          </Link>
+      
           <h1 className="text-2xl font-semibold mt-6 mb-2">Welcome Back</h1>
           <p className="text-muted-foreground">Sign in to access your dashboard</p>
         </div>
@@ -64,11 +62,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Demo credentials: any email and password
-            </p>
-          </div>
+         
         </div>
 
         {/* Footer */}
@@ -77,7 +71,7 @@ export default function LoginPage() {
             href="/"
             className="text-sm text-muted-foreground hover:text-primary transition-colors"
           >
-            ← Back to Fantasy
+            ← Back to Storia
           </Link>
         </div>
       </div>
