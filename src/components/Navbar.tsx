@@ -106,7 +106,7 @@ export default function Navigation() {
               />
             </div>
 
-            <Link href="/login">
+            <Link href="/auth/login">
               <User className="w-5 h-5 text-muted-foreground hover:text-primary cursor-pointer transition-all duration-300 hover:scale-110 hover:drop-shadow-lg" />
             </Link>
 
