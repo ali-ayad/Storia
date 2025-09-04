@@ -2,8 +2,21 @@
 
 import Link from "next/link"
 import { Eye } from "lucide-react"
+import { useRouter } from "next/router"
+import { FormEvent, useState } from "react"
 
 export default function LoginPage() {
+  const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    // Demo login: accept any credentials and set a simple cookie token
+    document.cookie = `token=demo; path=/; max-age=${60 * 60 * 24 * 7}`
+    router.push("/dashboard")
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-md">
@@ -16,7 +29,7 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="bg-card border border-border/20 rounded-lg p-8 shadow-lg">
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={onSubmit}>
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-2">
@@ -27,6 +40,8 @@ export default function LoginPage() {
                 type="email"
                 className="w-full px-4 py-3 bg-background border border-border/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                 placeholder="admin@fantasy.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -42,6 +57,8 @@ export default function LoginPage() {
                   type="password"
                   className="w-full px-4 py-3 bg-background border border-border/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors pr-12"
                   placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                 />
                 <button
