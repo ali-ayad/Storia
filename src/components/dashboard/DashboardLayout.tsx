@@ -1,13 +1,32 @@
 "use client"
 
-import { FC, ReactNode } from "react"
+import { FC, ReactNode, useState } from "react"
 import Link from "next/link"
+import Sidebar from "./Sidebar"
+import MainContent from "./MainContent"
+import AddStoriesContent from "./AddStoriesContent"
+import AddAuthorsContent from "./AddAuthorsContent"
 
 interface Props {
-  children: ReactNode
+  children?: ReactNode
 }
 
 const DashboardLayout: FC<Props> = ({ children }) => {
+  const [activeTab, setActiveTab] = useState("main")
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case "main":
+        return <MainContent />
+      case "add-stories":
+        return <AddStoriesContent />
+      case "add-authors":
+        return <AddAuthorsContent />
+      default:
+        return children || <MainContent />
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Dashboard Nav */}
@@ -30,9 +49,14 @@ const DashboardLayout: FC<Props> = ({ children }) => {
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-8">
-        {children}
-      </main>
+      <div className="flex h-[calc(100vh-73px)]">
+        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <main className="flex-1 overflow-auto">
+          <div className="container mx-auto px-6 py-8">
+            {renderContent()}
+          </div>
+        </main>
+      </div>
     </div>
   )
 }
