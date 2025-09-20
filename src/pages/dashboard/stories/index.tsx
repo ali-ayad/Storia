@@ -1,20 +1,18 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import DashboardLayout from "@/components/dashboard/DashboardLayout"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Plus, Edit, Trash2, Eye, BookOpen, CheckCircle, FileText, Eye as EyeIcon } from "lucide-react"
-import DataTable, { Column } from "@/components/dashboard/tables/DataTable"
-import StatsCards from "@/components/dashboard/StatsCards"
-import WithAuth from "@/components/dashboard/withAuth"
-import AddStoryModal from "@/components/dashboard/modals/AddStoryModal"
+import { useState } from "react";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Edit, Trash2 } from "lucide-react";
+import DataTable, { Column } from "@/components/dashboard/tables/DataTable";
+import WithAuth from "@/components/dashboard/withAuth";
+import AddStoryModal from "./addStroy";
 
 export default function StoriesPage() {
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Mock data - replace with actual API calls
-  const stories = [
+  const [stories, setStories] = useState([
     {
       id: 1,
       title: "The Adventure Begins",
@@ -22,7 +20,9 @@ export default function StoriesPage() {
       category: "Adventure",
       status: "published",
       createdAt: "2024-01-15",
-      views: 1250
+      views: 1250,
+      content:
+        "This is the full story content for 'The Adventure Begins'. It can be very long and detailed.",
     },
     {
       id: 2,
@@ -31,7 +31,9 @@ export default function StoriesPage() {
       category: "Mystery",
       status: "draft",
       createdAt: "2024-01-14",
-      views: 890
+      views: 890,
+      content:
+        "Full content of 'Mystery of the Lost City'. Includes plot details and descriptions.",
     },
     {
       id: 3,
@@ -40,127 +42,137 @@ export default function StoriesPage() {
       category: "Romance",
       status: "published",
       createdAt: "2024-01-13",
-      views: 2100
-    }
-  ]
+      views: 2100,
+      content: "Story content for 'Love in Paris'. Romantic scenes and storylines.",
+    },
+  ]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "published":
-        return <Badge variant="default">Published</Badge>
+        return <Badge variant="default">Published</Badge>;
       case "draft":
-        return <Badge variant="secondary">Draft</Badge>
+        return <Badge variant="secondary">Draft</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <Badge variant="outline">{status}</Badge>;
     }
-  }
+  };
 
   const columns: Column<typeof stories[0]>[] = [
     {
       key: "title",
       label: "Title",
-      render: (value) => <div className="font-medium">{value}</div>
+      render: (value) => <div className="font-medium">{value}</div>,
     },
     {
       key: "author",
       label: "Author",
-      render: (value) => <span className="text-muted-foreground">{value}</span>
+      render: (value) => <span className="text-muted-foreground">{value}</span>,
     },
     {
       key: "category",
       label: "Category",
-      render: (value) => <Badge variant="outline">{value}</Badge>
+      render: (value) => <Badge variant="outline">{value}</Badge>,
     },
     {
       key: "status",
       label: "Status",
-      render: (value) => getStatusBadge(value)
+      render: (value) => getStatusBadge(value),
     },
     {
       key: "views",
       label: "Views",
-      render: (value) => <span className="text-muted-foreground">{value.toLocaleString()}</span>
+      render: (value) => (
+        <span className="text-muted-foreground">{value.toLocaleString()}</span>
+      ),
     },
     {
       key: "createdAt",
       label: "Created",
-      render: (value) => <span className="text-muted-foreground">{value}</span>
-    }
-  ]
+      render: (value) => <span className="text-muted-foreground">{value}</span>,
+    },
+  ];
 
-  const stats = [
-    {
-      title: "Total Stories",
-      value: stories.length,
-      icon: <BookOpen className="h-6 w-6" />,
-      change: { value: 14.3, type: "increase" as const },
-      badge: { text: "+3 this week", variant: "secondary" as const }
-    },
-    {
-      title: "Published",
-      value: stories.filter(s => s.status === "published").length,
-      icon: <CheckCircle className="h-6 w-6" />,
-      change: { value: 8.2, type: "increase" as const },
-      badge: { text: "75% published", variant: "default" as const }
-    },
-    {
-      title: "Drafts",
-      value: stories.filter(s => s.status === "draft").length,
-      icon: <FileText className="h-6 w-6" />,
-      change: { value: 5.1, type: "increase" as const }
-    },
-    {
-      title: "Total Views",
-      value: stories.reduce((sum, s) => sum + s.views, 0),
-      icon: <EyeIcon className="h-6 w-6" />,
-      change: { value: 12.5, type: "increase" as const }
-    }
-  ]
-
-  const handleAddStory = async (formData: any) => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    console.log("Story data:", formData)
-    // Here you would typically refresh the stories list or add to state
-  }
+  const handleAddStory = (formData: any) => {
+    console.log("New story:", formData);
+    // Optionally add to state:
+    setStories((prev) => [
+      ...prev,
+      { ...formData, id: prev.length + 1, views: 0, createdAt: new Date().toISOString(), status: "draft" },
+    ]);
+  };
 
   return (
     <WithAuth>
       <DashboardLayout>
-        <div className="space-y-6">
+        <div className="space-y-6 mt-7">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Stories</h1>
-              <p className="text-muted-foreground mt-2">Manage all your stories</p>
-            </div>
-            <Button onClick={() => setIsAddModalOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
+            <h1 className="text-3xl font-bold">Stories Management</h1>
+            <Button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Plus className="w-4 h-4" />
               Add Story
             </Button>
           </div>
 
-          {/* Stats */}
-          <StatsCards stats={stats} />
-
           {/* Stories Table */}
-          <DataTable
-            data={stories}
-            columns={columns}
-            onView={(story) => console.log("View story:", story)}
-            onEdit={(story) => console.log("Edit story:", story)}
-            onDelete={(story) => console.log("Delete story:", story)}
-            emptyMessage="No stories found. Create your first story to get started!"
-          />
+          <div className="bg-card rounded-lg">
+            <div className="p-6 border-b border-border/20 mb-5">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search stories..."
+                  className="w-full pl-10 pr-4 py-2 bg-background border border-border/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                />
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4">
+                  🔍
+                </div>
+              </div>
+            </div>
+
+            <DataTable
+              data={stories}
+              columns={columns}
+              allActions={[
+                {
+                  label: "Edit",
+                  icon: <Edit />,
+                  onClick: (story) => console.log("Edit", story),
+                },
+                {
+                  label: "Delete",
+                  icon: <Trash2 />,
+                
+                  onClick: (story) =>
+                    setStories((prev) =>
+                      prev.filter((s) => s.id !== story.id)
+                    ),
+                },
+              ]}
+              expandableRow={(story) => (
+                <div className="p-4 bg-background/50 rounded-lg border border-border/10">
+                  <h4 className="font-semibold mb-2 text-primary">
+                    Story Content:
+                  </h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {story.content}
+                  </p>
+                </div>
+              )}
+            />
+          </div>
 
           {/* Add Story Modal */}
           <AddStoryModal
-            isOpen={isAddModalOpen}
-            onClose={() => setIsAddModalOpen(false)}
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
             onSubmit={handleAddStory}
           />
         </div>
       </DashboardLayout>
     </WithAuth>
-  )
+  );
 }
