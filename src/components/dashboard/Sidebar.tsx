@@ -65,3 +65,4 @@ const Sidebar: FC<SidebarProps> = ({ activeTab, onTabChange }) => {
 }
 
 export default Sidebar
+

@@ -8,9 +8,12 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
   // Define which routes should NOT use Layout
-  const noLayoutPages = ["/auth/login", "/dashboard"];
+  const noLayoutPages = ["/auth/login"];
+  
+  // Check if current route is a dashboard route
+  const isDashboardRoute = router.pathname.startsWith("/dashboard");
 
-  const isNoLayout = noLayoutPages.includes(router.pathname);
+  const isNoLayout = noLayoutPages.includes(router.pathname) || isDashboardRoute;
 
   if (isNoLayout) {
     // Render page without Layout + Navbar

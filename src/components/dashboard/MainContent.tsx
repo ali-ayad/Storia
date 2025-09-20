@@ -47,35 +47,11 @@ const MainContent: FC = () => {
         </div>
       </div>
 
-      {/* Recent Activity */}
-      <div className="bg-card border border-border/20 rounded-lg p-6">
-        <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
-        <div className="space-y-3">
-          <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-md">
-            <div className="text-lg">📝</div>
-            <div className="flex-1">
-              <p className="text-sm font-medium">New story "The Adventure Begins" created</p>
-              <p className="text-xs text-muted-foreground">2 hours ago</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-md">
-            <div className="text-lg">✍️</div>
-            <div className="flex-1">
-              <p className="text-sm font-medium">Author "John Doe" added to platform</p>
-              <p className="text-xs text-muted-foreground">1 day ago</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-md">
-            <div className="text-lg">📖</div>
-            <div className="flex-1">
-              <p className="text-sm font-medium">Story "Mystery of the Lost City" published</p>
-              <p className="text-xs text-muted-foreground">3 days ago</p>
-            </div>
-          </div>
-        </div>
-      </div>
+     
+     
     </div>
   )
 }
 
 export default MainContent
+
