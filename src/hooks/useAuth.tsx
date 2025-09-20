@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import { useRouter } from "next/router"
+import { useEffect, useState, ReactNode } from "react"
+import { useRouter } from "next/navigation"
 
 function hasTokenCookie(): boolean {
   if (typeof document === "undefined") return false
@@ -25,7 +25,11 @@ export function useAuth() {
   }
 }
 
-export function useAuthGuard() {
+/**
+ * Wrap your protected content with this.
+ * Example: <AuthGuard><DashboardPage /></AuthGuard>
+ */
+export function AuthGuard({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
 
   if (isLoading) {
@@ -40,5 +44,5 @@ export function useAuthGuard() {
     return null
   }
 
-  return null
+  return <>{children}</>
 }

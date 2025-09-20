@@ -1,61 +1,37 @@
 "use client"
 
-import { FC, ReactNode, useState } from "react"
+import { ReactNode, useState } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { 
-  Home, 
   BookOpen, 
   Users, 
-  BarChart3, 
-  Settings, 
-  Plus, 
+  Settings,
   Menu, 
   X,
   LogOut,
-  Globe
+  Globe,
+  BarChart3
 } from "lucide-react"
 
-interface Props {
-  children: ReactNode
-}
-
-const DashboardLayout: FC<Props> = ({ children }) => {
+export default function DashboardRootLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const pathname = usePathname()
 
   const navigationItems = [
-    {
-      title: "Overview",
-      href: "/dashboard",
-      icon: Home,
-      description: "Dashboard overview"
-    },
-    {
-      title: "Stories",
-      icon: BookOpen,
-      href: "/dashboard/stories",
-      description: "Manage stories"
-    },
-    {
-      title: "Authors",
-      icon: Users,
-      href: "/dashboard/authors",
-      description: "Manage authors"
-    },
-    {
-      title: "Settings",
-      icon: Settings,
-      href: "/dashboard/settings",
-      description: "System settings"
-    }
+    { key: "overview", title: "Overview", href: "/dashboard", icon: BarChart3 },
+    { key: "stories", title: "Stories", href: "/dashboard/stories", icon: BookOpen },
+    { key: "authors", title: "Authors", href: "/dashboard/authors", icon: Users },
+    { key: "settings", title: "Settings", href: "/dashboard/settings", icon: Settings },
   ]
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Mobile sidebar overlay */}
+      {/* Mobile overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -67,11 +43,14 @@ const DashboardLayout: FC<Props> = ({ children }) => {
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex flex-col h-full">
-          {/* Sidebar header */}
+          {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-border/20">
-            <Link href="/dashboard" className="text-lg font-semibold">
-              Storia Dashboard
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link href="/" className="text-xl font-bold tracking-wider text-primary">
+                STORIA
+              </Link>
+              <span className="hidden lg:inline text-muted-foreground">/ Dashboard</span>
+            </div>
             <Button
               variant="ghost"
               size="sm"
@@ -84,22 +63,28 @@ const DashboardLayout: FC<Props> = ({ children }) => {
 
           {/* Navigation */}
           <nav className="flex-1 p-6 space-y-2 overflow-y-auto">
-            {navigationItems.map((item) => (
-              <Link
-                key={item.title}
-                href={item.href}
-                className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium hover:bg-muted/50 transition-colors"
-              >
-                <item.icon className="h-4 w-4" />
-                <div className="flex flex-col">
-                  <span>{item.title}</span>
-                  <span className="text-xs text-muted-foreground">{item.description}</span>
-                </div>
-              </Link>
-            ))}
+            {navigationItems.map((item) => {
+              const isActive = pathname === item.href
+              return (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors",
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-card"
+                  )}
+                  onClick={() => setSidebarOpen(false)} // close on mobile
+                >
+                  <item.icon className="w-5 h-5" />
+                  {item.title}
+                </Link>
+              )
+            })}
           </nav>
 
-          {/* Sidebar footer */}
+          {/* Footer */}
           <div className="p-6 border-t border-border/20">
             <div className="space-y-2">
               <Link
@@ -124,9 +109,8 @@ const DashboardLayout: FC<Props> = ({ children }) => {
         </div>
       </aside>
 
-      {/* Main content */}
+      {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top header */}
         <header className="sticky top-0 z-40 border-b border-border/20 bg-background/90 backdrop-blur-md">
           <div className="flex items-center justify-between px-6 py-4">
             <Button
@@ -137,12 +121,9 @@ const DashboardLayout: FC<Props> = ({ children }) => {
             >
               <Menu className="h-4 w-4" />
             </Button>
-            
-          
           </div>
         </header>
 
-        {/* Page content */}
         <main className="flex-1 p-6 overflow-auto">
           {children}
         </main>
@@ -150,7 +131,3 @@ const DashboardLayout: FC<Props> = ({ children }) => {
     </div>
   )
 }
-
-export default DashboardLayout
-
-

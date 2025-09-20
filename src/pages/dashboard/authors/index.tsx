@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, Edit, Trash2, Eye, Mail, Globe, Users, CheckCircle, Pause, BookOpen } from "lucide-react"
 import DataTable, { Column } from "@/components/dashboard/tables/DataTable"
 import StatsCards from "@/components/dashboard/StatsCards"
-import WithAuth from "@/components/dashboard/withAuth"
 import AddAuthorModal from "@/components/dashboard/modals/AddAuthorModal"
 
 export default function AuthorsPage() {
@@ -143,42 +142,40 @@ export default function AuthorsPage() {
   }
 
   return (
-    <WithAuth>
-      <DashboardLayout>
-        <div className="space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Authors</h1>
-              <p className="text-muted-foreground mt-2">Manage all authors on your platform</p>
-            </div>
-            <Button onClick={() => setIsAddModalOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Author
-            </Button>
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Authors</h1>
+            <p className="text-muted-foreground mt-2">Manage all authors on your platform</p>
           </div>
-
-          {/* Stats */}
-          <StatsCards stats={stats} />
-
-          {/* Authors Table */}
-          <DataTable
-            data={authors}
-            columns={columns}
-            onView={(author) => console.log("View author:", author)}
-            onEdit={(author) => console.log("Edit author:", author)}
-            onDelete={(author) => console.log("Delete author:", author)}
-            emptyMessage="No authors found. Add your first author to get started!"
-          />
-
-          {/* Add Author Modal */}
-          <AddAuthorModal
-            isOpen={isAddModalOpen}
-            onClose={() => setIsAddModalOpen(false)}
-            onSubmit={handleAddAuthor}
-          />
+          <Button onClick={() => setIsAddModalOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add Author
+          </Button>
         </div>
-      </DashboardLayout>
-    </WithAuth>
+
+        {/* Stats */}
+        <StatsCards stats={stats} />
+
+        {/* Authors Table */}
+        <DataTable
+          data={authors}
+          columns={columns}
+          onView={(author) => console.log("View author:", author)}
+          onEdit={(author) => console.log("Edit author:", author)}
+          onDelete={(author) => console.log("Delete author:", author)}
+          emptyMessage="No authors found. Add your first author to get started!"
+        />
+
+        {/* Add Author Modal */}
+        <AddAuthorModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSubmit={handleAddAuthor}
+        />
+      </div>
+    </DashboardLayout>
   )
 }
