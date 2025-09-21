@@ -2,12 +2,13 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
 
-interface Column<T> {
+export interface Column<T> {
   key: keyof T;
   label: string;
   width?: string;
-  render?: (value: any, item: T) => React.ReactNode;
+  render?: (value: T[keyof T], item: T) => React.ReactNode;
 }
+
 
 interface DataTableProps<T> {
   data: T[];
@@ -31,10 +32,16 @@ export default function DataTable<T>({
 }: DataTableProps<T>) {
   const [expandedRow, setExpandedRow] = useState<null | number>(null);
 
-  const renderCellValue = (column: Column<T>, item: T) => {
-    const value = item[column.key];
-    return column.render ? column.render(value, item) : value;
-  };
+ const renderCellValue = (column: Column<T>, item: T): React.ReactNode => {
+  const value = item[column.key];
+
+  if (column.render) {
+    return column.render(value, item);
+  }
+
+  return value as React.ReactNode; // <-- ensures ReactNode
+};
+
 
   if (data.length === 0) {
     return (

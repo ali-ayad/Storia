@@ -18,8 +18,26 @@ import {
   Search,
 } from "lucide-react";
 import DataTable, { Column } from "@/components/dashboard/tables/DataTable";
-import StatsCards from "@/components/dashboard/StatsCards";
 import AddAuthorModal from "./addAother";
+
+
+interface Author {
+  id: number
+  name: string
+  email: string
+  bio: string
+  website: string
+  storiesCount: number
+  status: "active" | "inactive"
+  joinedAt: string
+}
+
+type AuthorFormData = Omit<Author, "id" | "storiesCount" | "status" | "joinedAt">
+
+
+
+
+
 
 export default function AuthorsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -112,11 +130,7 @@ export default function AuthorsPage() {
       label: "Stories",
       render: (value) => <Badge variant="outline">{value} stories</Badge>,
     },
-    {
-      key: "status",
-      label: "Status",
-      render: (value) => getStatusBadge(value),
-    },
+   
     {
       key: "joinedAt",
       label: "Joined",
@@ -124,49 +138,24 @@ export default function AuthorsPage() {
     },
   ];
 
-  const stats = [
-    {
-      title: "Total Authors",
-      value: authors.length,
-      icon: <Users className="h-6 w-6" />,
-      change: { value: 20.0, type: "increase" as const },
-      badge: { text: "+2 this month", variant: "secondary" as const },
-    },
-    {
-      title: "Active",
-      value: authors.filter((a) => a.status === "active").length,
-      icon: <CheckCircle className="h-6 w-6" />,
-      change: { value: 15.2, type: "increase" as const },
-      badge: { text: "83% active", variant: "default" as const },
-    },
-    {
-      title: "Inactive",
-      value: authors.filter((a) => a.status === "inactive").length,
-      icon: <Pause className="h-6 w-6" />,
-      change: { value: 5.1, type: "decrease" as const },
-    },
-    {
-      title: "Total Stories",
-      value: authors.reduce((sum, a) => sum + a.storiesCount, 0),
-      icon: <BookOpen className="h-6 w-6" />,
-      change: { value: 18.7, type: "increase" as const },
-    },
-  ];
+ 
 
- const handleAddAuthor = async (formData: any) => {
+const handleAddAuthor = async (formData: AuthorFormData) => {
   await new Promise(resolve => setTimeout(resolve, 500)) // simulate API
-  
-  setAuthors((prev) => [
+
+  setAuthors(prev => [
     ...prev,
     {
       id: prev.length + 1, // temporary ID
       storiesCount: 0,
       status: "active",
       joinedAt: new Date().toISOString().split("T")[0],
-      ...formData,
+      ...formData, // matches Author type
     },
   ])
 }
+
+
 
   return (
     <DashboardLayout>
@@ -185,8 +174,7 @@ export default function AuthorsPage() {
           </Button>
         </div>
 
-        {/* Stats */}
-        {/* <StatsCards stats={stats} /> */}
+      
 
         {/* Authors Table */}
         <div className="bg-card rounded-lg">

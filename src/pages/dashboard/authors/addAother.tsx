@@ -4,22 +4,22 @@ import { useState } from "react"
 import { X } from "lucide-react"
 
 interface AddAuthorModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
   onSubmit: (formData: {
-    name: string
-    bio: string
-    genre: string
-    image: string
-  }) => void
+    name: string;
+    bio: string;
+    email: string;
+    website: string;
+  }) => void;
 }
 
 export default function AddAuthorModal({ isOpen, onClose, onSubmit }: AddAuthorModalProps) {
   const [formData, setFormData] = useState({
     name: "",
     bio: "",
-    genre: "",
-    image: "",
+    email: "",
+    website: "",
   })
 
   if (!isOpen) return null
@@ -27,7 +27,7 @@ export default function AddAuthorModal({ isOpen, onClose, onSubmit }: AddAuthorM
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onSubmit(formData)
-    setFormData({ name: "", bio: "", genre: "", image: "" }) // reset form
+    setFormData({ name: "", bio: "", email: "", website: "" }) // reset form
     onClose()
   }
 
@@ -44,6 +44,7 @@ export default function AddAuthorModal({ isOpen, onClose, onSubmit }: AddAuthorM
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-4 space-y-3">
+          {/* Name */}
           <div>
             <label className="block text-sm font-medium mb-1">Name</label>
             <input
@@ -56,6 +57,7 @@ export default function AddAuthorModal({ isOpen, onClose, onSubmit }: AddAuthorM
             />
           </div>
 
+          {/* Bio */}
           <div>
             <label className="block text-sm font-medium mb-1">Bio</label>
             <textarea
@@ -68,31 +70,28 @@ export default function AddAuthorModal({ isOpen, onClose, onSubmit }: AddAuthorM
             />
           </div>
 
+          {/* Email */}
           <div>
-            <label className="block text-sm font-medium mb-1">Genre Specialization</label>
-            <select
-              value={formData.genre}
-              onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
+            <label className="block text-sm font-medium mb-1">Email</label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="w-full px-3 py-2 bg-background border border-border/20 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/20 focus:border-primary transition-colors text-sm"
+              placeholder="author@example.com"
               required
-            >
-              <option value="">Select genre</option>
-              <option value="Epic Fantasy">Epic Fantasy</option>
-              <option value="Dark Fantasy">Dark Fantasy</option>
-              <option value="High Fantasy">High Fantasy</option>
-              <option value="Sci-Fi">Sci-Fi</option>
-              <option value="Mystery">Mystery</option>
-            </select>
+            />
           </div>
 
+          {/* Website */}
           <div>
-            <label className="block text-sm font-medium mb-1">Image URL</label>
+            <label className="block text-sm font-medium mb-1">Website</label>
             <input
               type="url"
-              value={formData.image}
-              onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+              value={formData.website}
+              onChange={(e) => setFormData({ ...formData, website: e.target.value })}
               className="w-full px-3 py-2 bg-background border border-border/20 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary/20 focus:border-primary transition-colors text-sm"
-              placeholder="https://example.com/avatar.jpg"
+              placeholder="https://example.com"
             />
           </div>
 
