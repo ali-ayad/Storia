@@ -1,19 +1,31 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import DashboardLayout from "@/components/dashboard/DashboardLayout"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Plus, Edit, Trash2, Eye, Mail, Globe, Users, CheckCircle, Pause, BookOpen } from "lucide-react"
-import DataTable, { Column } from "@/components/dashboard/tables/DataTable"
-import StatsCards from "@/components/dashboard/StatsCards"
-import AddAuthorModal from "@/components/dashboard/modals/AddAuthorModal"
+import { useState } from "react";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Mail,
+  Globe,
+  Users,
+  CheckCircle,
+  Pause,
+  BookOpen,
+  Search,
+} from "lucide-react";
+import DataTable, { Column } from "@/components/dashboard/tables/DataTable";
+import StatsCards from "@/components/dashboard/StatsCards";
+import AddAuthorModal from "./addAother";
 
 export default function AuthorsPage() {
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Mock data - replace with actual API calls
-  const authors = [
+  const [authors, setAuthors] = useState([
     {
       id: 1,
       name: "John Doe",
@@ -22,7 +34,7 @@ export default function AuthorsPage() {
       website: "https://johndoe.com",
       storiesCount: 5,
       status: "active",
-      joinedAt: "2023-01-15"
+      joinedAt: "2023-01-15",
     },
     {
       id: 2,
@@ -32,7 +44,7 @@ export default function AuthorsPage() {
       website: "https://janesmith.com",
       storiesCount: 8,
       status: "active",
-      joinedAt: "2023-02-20"
+      joinedAt: "2023-02-20",
     },
     {
       id: 3,
@@ -42,31 +54,33 @@ export default function AuthorsPage() {
       website: "",
       storiesCount: 3,
       status: "inactive",
-      joinedAt: "2023-03-10"
-    }
-  ]
+      joinedAt: "2023-03-10",
+    },
+  ]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "active":
-        return <Badge variant="default">Active</Badge>
+        return <Badge variant="default">Active</Badge>;
       case "inactive":
-        return <Badge variant="secondary">Inactive</Badge>
+        return <Badge variant="secondary">Inactive</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <Badge variant="outline">{status}</Badge>;
     }
-  }
+  };
 
-  const columns: Column<typeof authors[0]>[] = [
+  const columns: Column<(typeof authors)[0]>[] = [
     {
       key: "name",
       label: "Author",
       render: (value, item) => (
         <div>
           <div className="font-medium">{value}</div>
-          <div className="text-sm text-muted-foreground line-clamp-2">{item.bio}</div>
+          <div className="text-sm text-muted-foreground line-clamp-2">
+            {item.bio}
+          </div>
         </div>
-      )
+      ),
     },
     {
       key: "email",
@@ -80,30 +94,35 @@ export default function AuthorsPage() {
           {item.website && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Globe className="h-3 w-3" />
-              <a href={item.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
+              <a
+                href={item.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
                 Website
               </a>
             </div>
           )}
         </div>
-      )
+      ),
     },
     {
       key: "storiesCount",
       label: "Stories",
-      render: (value) => <Badge variant="outline">{value} stories</Badge>
+      render: (value) => <Badge variant="outline">{value} stories</Badge>,
     },
     {
       key: "status",
       label: "Status",
-      render: (value) => getStatusBadge(value)
+      render: (value) => getStatusBadge(value),
     },
     {
       key: "joinedAt",
       label: "Joined",
-      render: (value) => <span className="text-muted-foreground">{value}</span>
-    }
-  ]
+      render: (value) => <span className="text-muted-foreground">{value}</span>,
+    },
+  ];
 
   const stats = [
     {
@@ -111,35 +130,43 @@ export default function AuthorsPage() {
       value: authors.length,
       icon: <Users className="h-6 w-6" />,
       change: { value: 20.0, type: "increase" as const },
-      badge: { text: "+2 this month", variant: "secondary" as const }
+      badge: { text: "+2 this month", variant: "secondary" as const },
     },
     {
       title: "Active",
-      value: authors.filter(a => a.status === "active").length,
+      value: authors.filter((a) => a.status === "active").length,
       icon: <CheckCircle className="h-6 w-6" />,
       change: { value: 15.2, type: "increase" as const },
-      badge: { text: "83% active", variant: "default" as const }
+      badge: { text: "83% active", variant: "default" as const },
     },
     {
       title: "Inactive",
-      value: authors.filter(a => a.status === "inactive").length,
+      value: authors.filter((a) => a.status === "inactive").length,
       icon: <Pause className="h-6 w-6" />,
-      change: { value: 5.1, type: "decrease" as const }
+      change: { value: 5.1, type: "decrease" as const },
     },
     {
       title: "Total Stories",
       value: authors.reduce((sum, a) => sum + a.storiesCount, 0),
       icon: <BookOpen className="h-6 w-6" />,
-      change: { value: 18.7, type: "increase" as const }
-    }
-  ]
+      change: { value: 18.7, type: "increase" as const },
+    },
+  ];
 
-  const handleAddAuthor = async (formData: any) => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    console.log("Author data:", formData)
-    // Here you would typically refresh the authors list or add to state
-  }
+ const handleAddAuthor = async (formData: any) => {
+  await new Promise(resolve => setTimeout(resolve, 500)) // simulate API
+  
+  setAuthors((prev) => [
+    ...prev,
+    {
+      id: prev.length + 1, // temporary ID
+      storiesCount: 0,
+      status: "active",
+      joinedAt: new Date().toISOString().split("T")[0],
+      ...formData,
+    },
+  ])
+}
 
   return (
     <DashboardLayout>
@@ -148,27 +175,52 @@ export default function AuthorsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Authors</h1>
-            <p className="text-muted-foreground mt-2">Manage all authors on your platform</p>
+            <p className="text-muted-foreground mt-2">
+              Manage all authors on your platform
+            </p>
           </div>
-          <Button onClick={() => setIsAddModalOpen(true)} className="gap-2">
+          <Button onClick={() => setIsAddModalOpen(true)} className="gap-2 cursor-pointer">
             <Plus className="h-4 w-4" />
             Add Author
           </Button>
         </div>
 
         {/* Stats */}
-        <StatsCards stats={stats} />
+        {/* <StatsCards stats={stats} /> */}
 
         {/* Authors Table */}
-        <DataTable
-          data={authors}
-          columns={columns}
-          onView={(author) => console.log("View author:", author)}
-          onEdit={(author) => console.log("Edit author:", author)}
-          onDelete={(author) => console.log("Delete author:", author)}
-          emptyMessage="No authors found. Add your first author to get started!"
-        />
+        <div className="bg-card rounded-lg">
+          <div className="p-6 border-b border-border/20 mb-5">
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search stories..."
+                className="w-full pl-10 pr-4 py-2 bg-background border border-border/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+             
+            </div>
+          </div>
 
+          <DataTable
+            data={authors}
+            columns={columns}
+            allActions={[
+              {
+                label: "Edit",
+                icon: <Edit />,
+                onClick: (story) => console.log("Edit", story),
+              },
+              {
+                label: "Delete",
+                icon: <Trash2 />,
+                onClick: (author) =>
+                  setAuthors((prev) => prev.filter((a) => a.id !== author.id)),
+              },
+            ]}
+            emptyMessage="No authors found. Add your first author to get started!"
+          />
+        </div>
         {/* Add Author Modal */}
         <AddAuthorModal
           isOpen={isAddModalOpen}
@@ -177,5 +229,5 @@ export default function AuthorsPage() {
         />
       </div>
     </DashboardLayout>
-  )
+  );
 }

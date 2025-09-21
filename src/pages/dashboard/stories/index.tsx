@@ -4,7 +4,7 @@ import { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, Search } from "lucide-react";
 import DataTable, { Column } from "@/components/dashboard/tables/DataTable";
 import WithAuth from "@/components/dashboard/withAuth";
 import AddStoryModal from "./addStroy";
@@ -111,9 +111,9 @@ export default function StoriesPage() {
             <h1 className="text-3xl font-bold">Stories Management</h1>
             <Button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+              className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 " />
               Add Story
             </Button>
           </div>
@@ -122,14 +122,13 @@ export default function StoriesPage() {
           <div className="bg-card rounded-lg">
             <div className="p-6 border-b border-border/20 mb-5">
               <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Search stories..."
                   className="w-full pl-10 pr-4 py-2 bg-background border border-border/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                 />
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4">
-                  🔍
-                </div>
+              
               </div>
             </div>
 
