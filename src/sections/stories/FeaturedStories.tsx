@@ -4,6 +4,8 @@ import Link from "next/link";
 import Image from "next/image"; // ✅ import Next.js Image
 import { Star, BookOpen, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useGetStoriesQuery } from "@/Api/storiesApi";
+
 
 const featuredStories = [
   {
@@ -52,8 +54,14 @@ const featuredStories = [
   },
 ];
 
+  
+
 
 export default function FeaturedStories() {
+
+  const { data: stories, error, isLoading } = useGetStoriesQuery();
+
+  console.log(stories)
   return (
     <section className="mb-20">
       <div className="flex items-center justify-between mb-12">
