@@ -1,35 +1,44 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { X } from "lucide-react"
+import { useState } from "react";
+import { X } from "lucide-react";
+import { useAddStoryMutation } from "@/Api/storiesApi";
 
 interface AddStoryModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSubmit: (formData: {
-    title: string
-    author: string
-    genre: string
-    content: string
-  }) => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export default function AddStoryModal({ isOpen, onClose, onSubmit }: AddStoryModalProps) {
+export default function AddStoryModal({ isOpen, onClose }: AddStoryModalProps) {
   const [formData, setFormData] = useState({
     title: "",
-    author: "",
-    genre: "",
+   
+   
     content: "",
-  })
+  });
 
-  if (!isOpen) return null
+  const [addStory, { isLoading, isSuccess, error }] = useAddStoryMutation();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSubmit(formData)
-    setFormData({ title: "", author: "", genre: "", content: "" }) // reset form
-    onClose()
-  }
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // prepare new story data to match your Supabase table
+    const newStory = {
+      title: formData.title,
+      content: formData.content,
+      author_id: formData.author, // assuming this is the foreign key
+     
+    };
+
+    // call RTK Query mutation
+    await addStory(newStory);
+
+    // reset and close modal
+    setFormData({ title: "", author: "", genre: "", content: "" });
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -56,7 +65,7 @@ export default function AddStoryModal({ isOpen, onClose, onSubmit }: AddStoryMod
             />
           </div>
 
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium mb-1">Author</label>
             <select
               value={formData.author}
@@ -65,14 +74,12 @@ export default function AddStoryModal({ isOpen, onClose, onSubmit }: AddStoryMod
               required
             >
               <option value="">Select author</option>
-              <option value="elena-shadowmere">Elena Shadowmere</option>
-              <option value="marcus-nightfall">Marcus Nightfall</option>
-              <option value="aria-stormwind">Aria Stormwind</option>
-              <option value="theron-blackwood">Theron Blackwood</option>
+              <option value="99b897b2ed-bdc9-4ccc-957f-ac2898afd6b2">Elena Shadowmere</option>
+             
             </select>
-          </div>
+          </div> */}
 
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium mb-1">Genre</label>
             <select
               value={formData.genre}
@@ -85,7 +92,7 @@ export default function AddStoryModal({ isOpen, onClose, onSubmit }: AddStoryMod
               <option value="Dark Fantasy">Dark Fantasy</option>
               <option value="High Fantasy">High Fantasy</option>
             </select>
-          </div>
+          </div> */}
 
           <div>
             <label className="block text-sm font-medium mb-1">Story Content</label>
@@ -103,9 +110,10 @@ export default function AddStoryModal({ isOpen, onClose, onSubmit }: AddStoryMod
           <div className="flex gap-2 pt-2">
             <button
               type="submit"
+              disabled={isLoading}
               className="bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors flex-1"
             >
-              Add Story
+              {isLoading ? "Adding..." : "Add Story"}
             </button>
             <button
               type="button"
@@ -115,8 +123,12 @@ export default function AddStoryModal({ isOpen, onClose, onSubmit }: AddStoryMod
               Cancel
             </button>
           </div>
+
+          {/* Status messages */}
+          {isSuccess && <p className="text-green-500 text-sm pt-1">Story added successfully!</p>}
+          {error && <p className="text-red-500 text-sm pt-1">Failed to add story.</p>}
         </form>
       </div>
     </div>
-  )
+  );
 }

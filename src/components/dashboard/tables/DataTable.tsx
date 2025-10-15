@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
 
 export interface Column<T> {
   key: keyof T;
@@ -9,9 +8,8 @@ export interface Column<T> {
   render?: (value: T[keyof T], item: T) => React.ReactNode;
 }
 
-
 interface DataTableProps<T> {
-  data: T[];
+  data?: T[]; // ✅ optional to avoid runtime crash before data loads
   columns: Column<T>[];
   allActions?: {
     label: string;
@@ -24,7 +22,7 @@ interface DataTableProps<T> {
 }
 
 export default function DataTable<T>({
-  data,
+  data = [], // ✅ default empty array
   columns,
   allActions = [],
   expandableRow,
@@ -32,18 +30,13 @@ export default function DataTable<T>({
 }: DataTableProps<T>) {
   const [expandedRow, setExpandedRow] = useState<null | number>(null);
 
- const renderCellValue = (column: Column<T>, item: T): React.ReactNode => {
-  const value = item[column.key];
+  const renderCellValue = (column: Column<T>, item: T): React.ReactNode => {
+    const value = item[column.key];
+    return column.render ? column.render(value, item) : (value as React.ReactNode);
+  };
 
-  if (column.render) {
-    return column.render(value, item);
-  }
-
-  return value as React.ReactNode; // <-- ensures ReactNode
-};
-
-
-  if (data.length === 0) {
+  // ✅ Handle empty state gracefully
+  if (!Array.isArray(data) || data.length === 0) {
     return (
       <div className="p-6 text-center text-muted-foreground">
         {emptyMessage}
@@ -74,7 +67,7 @@ export default function DataTable<T>({
 
       <tbody>
         {data.map((item, rowIndex) => (
-          <React.Fragment key={rowIndex}>
+          <React.Fragment key={(item as any).id ?? rowIndex}>
             <tr className="border-b border-border/20 hover:bg-muted/30 transition-colors">
               {columns.map((column, colIndex) => (
                 <td key={colIndex} className="p-4">
@@ -104,12 +97,12 @@ export default function DataTable<T>({
                         variant={action.variant || "ghost"}
                         size="sm"
                         onClick={() => action.onClick(item)}
+                        title={action.label}
                         className={
                           action.variant === "destructive"
                             ? "text-destructive hover:text-destructive"
                             : ""
                         }
-                        title={action.label}
                       >
                         {action.icon}
                       </Button>

@@ -8,44 +8,16 @@ import { Plus, Edit, Trash2, Search } from "lucide-react";
 import DataTable, { Column } from "@/components/dashboard/tables/DataTable";
 import WithAuth from "@/components/dashboard/withAuth";
 import AddStoryModal from "./addStroy";
+import { useGetStoriesQuery } from "@/Api/storiesApi";
 
 export default function StoriesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [stories, setStories] = useState([
-    {
-      id: 1,
-      title: "The Adventure Begins",
-      author: "John Doe",
-      category: "Adventure",
-      status: "published",
-      createdAt: "2024-01-15",
-      views: 1250,
-      content:
-        "This is the full story content for 'The Adventure Begins'. It can be very long and detailed.",
-    },
-    {
-      id: 2,
-      title: "Mystery of the Lost City",
-      author: "Jane Smith",
-      category: "Mystery",
-      status: "draft",
-      createdAt: "2024-01-14",
-      views: 890,
-      content:
-        "Full content of 'Mystery of the Lost City'. Includes plot details and descriptions.",
-    },
-    {
-      id: 3,
-      title: "Love in Paris",
-      author: "Mike Johnson",
-      category: "Romance",
-      status: "published",
-      createdAt: "2024-01-13",
-      views: 2100,
-      content: "Story content for 'Love in Paris'. Romantic scenes and storylines.",
-    },
-  ]);
+ 
+
+   const { data: stories, error, isLoading } = useGetStoriesQuery();
+
+    console.log(stories)
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -83,24 +55,26 @@ export default function StoriesPage() {
       key: "views",
       label: "Views",
       render: (value) => (
-        <span className="text-muted-foreground">{value.toLocaleString()}</span>
+        <span className="text-muted-foreground">{value}</span>
       ),
     },
     {
-      key: "createdAt",
+      key: "created_at",
       label: "Created",
       render: (value) => <span className="text-muted-foreground">{value}</span>,
     },
   ];
 
-  const handleAddStory = (formData: any) => {
-    console.log("New story:", formData);
-    // Optionally add to state:
-    setStories((prev) => [
-      ...prev,
-      { ...formData, id: prev.length + 1, views: 0, createdAt: new Date().toISOString(), status: "draft" },
-    ]);
-  };
+  // const handleAddStory = (formData: any) => {
+  //   console.log("New story:", formData);
+  //   // Optionally add to state:
+  //   setStories((prev) => [
+  //     ...prev,
+  //     { ...formData, id: prev.length + 1, views: 0, createdAt: new Date().toISOString(), status: "draft" },
+  //   ]);
+  // };
+
+ 
 
   return (
     <WithAuth>
@@ -141,15 +115,15 @@ export default function StoriesPage() {
                   icon: <Edit />,
                   onClick: (story) => console.log("Edit", story),
                 },
-                {
-                  label: "Delete",
-                  icon: <Trash2 />,
+                // {
+                //   label: "Delete",
+                //   icon: <Trash2 />,
                 
-                  onClick: (story) =>
-                    setStories((prev) =>
-                      prev.filter((s) => s.id !== story.id)
-                    ),
-                },
+                //   onClick: (story) =>
+                //     setStories((prev) =>
+                //       prev.filter((s) => s.id !== story.id)
+                //     ),
+                // },
               ]}
               expandableRow={(story) => (
                 <div className="p-4 bg-background/50 rounded-lg border border-border/10">
@@ -168,7 +142,7 @@ export default function StoriesPage() {
           <AddStoryModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
-            onSubmit={handleAddStory}
+            // onSubmit={handleAddStory}
           />
         </div>
       </DashboardLayout>

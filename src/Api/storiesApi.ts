@@ -2,15 +2,14 @@ import { supabaseApi } from './supabaseApi'
 import { supabase } from '@/lib/supabaseClient'
 
 type Story = {
-  id: number
-  title: string
-  author: string
-  genre: string
-  rating: number
-  chapters: number
-  readers: string
-  image: string
-}
+  id: string;
+  created_at: string;
+  title: string;
+  content: string;
+  author_id: string | null;
+  published_at: string | null;
+};
+
 
 export const storiesApi = supabaseApi.injectEndpoints({
   endpoints: (builder) => ({
