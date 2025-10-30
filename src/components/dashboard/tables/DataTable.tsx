@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -9,7 +11,7 @@ export interface Column<T> {
 }
 
 interface DataTableProps<T> {
-  data?: T[]; // ✅ optional to avoid runtime crash before data loads
+  data?: T[];
   columns: Column<T>[];
   allActions?: {
     label: string;
@@ -19,14 +21,16 @@ interface DataTableProps<T> {
   }[];
   expandableRow?: (item: T) => React.ReactNode;
   emptyMessage?: string;
+  loading?: boolean;
 }
 
 export default function DataTable<T>({
-  data = [], // ✅ default empty array
+  data = [],
   columns,
   allActions = [],
   expandableRow,
   emptyMessage = "No data found.",
+  loading = false,
 }: DataTableProps<T>) {
   const [expandedRow, setExpandedRow] = useState<null | number>(null);
 
@@ -35,7 +39,16 @@ export default function DataTable<T>({
     return column.render ? column.render(value, item) : (value as React.ReactNode);
   };
 
-  // ✅ Handle empty state gracefully
+  // ✅ Loading Spinner
+  if (loading) {
+    return (
+      <div className="p-10 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  // ✅ Empty State
   if (!Array.isArray(data) || data.length === 0) {
     return (
       <div className="p-6 text-center text-muted-foreground">
@@ -57,6 +70,7 @@ export default function DataTable<T>({
               {column.label}
             </th>
           ))}
+
           {allActions.length > 0 && (
             <th className="text-left p-4 font-semibold text-muted-foreground w-32">
               Actions
@@ -98,11 +112,6 @@ export default function DataTable<T>({
                         size="sm"
                         onClick={() => action.onClick(item)}
                         title={action.label}
-                        className={
-                          action.variant === "destructive"
-                            ? "text-destructive hover:text-destructive"
-                            : ""
-                        }
                       >
                         {action.icon}
                       </Button>
@@ -112,6 +121,7 @@ export default function DataTable<T>({
               )}
             </tr>
 
+            {/* ✅ Expandable Content Row */}
             {expandableRow && expandedRow === rowIndex && (
               <tr className="bg-muted/20">
                 <td

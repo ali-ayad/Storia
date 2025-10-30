@@ -16,7 +16,14 @@ export const storiesApi = supabaseApi.injectEndpoints({
     // GET all stories
     getStories: builder.query<Story[], void>({
       async queryFn() {
-        const { data, error } = await supabase.from('stories').select('*')
+        const { data, error } = await supabase.from('stories').select(`
+  *,
+  authors (
+    id,
+    name
+  )
+`)
+
         if (error) return { error }
         return { data }
       },

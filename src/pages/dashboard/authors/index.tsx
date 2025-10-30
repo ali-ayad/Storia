@@ -4,90 +4,25 @@ import { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  Mail,
-  Globe,
-  Users,
-  CheckCircle,
-  Pause,
-  BookOpen,
-  Search,
-} from "lucide-react";
+import { Plus, Edit, Trash2, Mail, Globe, Search } from "lucide-react";
 import DataTable, { Column } from "@/components/dashboard/tables/DataTable";
-import AddAuthorModal from "./addAother";
-
-
-interface Author {
-  id: number
-  name: string
-  email: string
-  bio: string
-  website: string
-  storiesCount: number
-  status: "active" | "inactive"
-  joinedAt: string
-}
-
-type AuthorFormData = Omit<Author, "id" | "storiesCount" | "status" | "joinedAt">
-
-
-
-
-
+import AddAuthorModal from "./addAother"; // your modal
+import {
+  useGetAuthorsQuery,
+  useDeleteAuthorMutation,
+} from "@/Api/authorsApi";
 
 export default function AuthorsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // Mock data - replace with actual API calls
-  const [authors, setAuthors] = useState([
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john@example.com",
-      bio: "Award-winning author with over 10 years of experience in fiction writing.",
-      website: "https://johndoe.com",
-      storiesCount: 5,
-      status: "active",
-      joinedAt: "2023-01-15",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane@example.com",
-      bio: "Mystery and thriller writer, known for her captivating plot twists.",
-      website: "https://janesmith.com",
-      storiesCount: 8,
-      status: "active",
-      joinedAt: "2023-02-20",
-    },
-    {
-      id: 3,
-      name: "Mike Johnson",
-      email: "mike@example.com",
-      bio: "Romance novelist specializing in contemporary love stories.",
-      website: "",
-      storiesCount: 3,
-      status: "inactive",
-      joinedAt: "2023-03-10",
-    },
-  ]);
+  const { data: authors = [], isLoading, error } = useGetAuthorsQuery();
+  const [deleteAuthor] = useDeleteAuthorMutation();
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return <Badge variant="default">Active</Badge>;
-      case "inactive":
-        return <Badge variant="secondary">Inactive</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
+  const getStatusBadge = () => (
+    <Badge variant="default">Active</Badge>
+  );
 
-  const columns: Column<(typeof authors)[0]>[] = [
+  const columns: Column<typeof authors[0]>[] = [
     {
       key: "name",
       label: "Author",
@@ -109,53 +44,20 @@ export default function AuthorsPage() {
             <Mail className="h-3 w-3" />
             {value}
           </div>
-          {item.website && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Globe className="h-3 w-3" />
-              <a
-                href={item.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:underline"
-              >
-                Website
-              </a>
-            </div>
-          )}
+         
         </div>
       ),
     },
     {
-      key: "storiesCount",
-      label: "Stories",
-      render: (value) => <Badge variant="outline">{value} stories</Badge>,
-    },
-   
-    {
-      key: "joinedAt",
+      key: "created_at",
       label: "Joined",
-      render: (value) => <span className="text-muted-foreground">{value}</span>,
+      render: (value) => (
+        <span className="text-muted-foreground">
+          {value?.split("T")[0]}
+        </span>
+      ),
     },
   ];
-
- 
-
-const handleAddAuthor = async (formData: AuthorFormData) => {
-  await new Promise(resolve => setTimeout(resolve, 500)) // simulate API
-
-  setAuthors(prev => [
-    ...prev,
-    {
-      id: prev.length + 1, // temporary ID
-      storiesCount: 0,
-      status: "active",
-      joinedAt: new Date().toISOString().split("T")[0],
-      ...formData, // matches Author type
-    },
-  ])
-}
-
-
 
   return (
     <DashboardLayout>
@@ -168,52 +70,51 @@ const handleAddAuthor = async (formData: AuthorFormData) => {
               Manage all authors on your platform
             </p>
           </div>
-          <Button onClick={() => setIsAddModalOpen(true)} className="gap-2 cursor-pointer">
+
+          <Button onClick={() => setIsAddModalOpen(true)} className="gap-2">
             <Plus className="h-4 w-4" />
             Add Author
           </Button>
         </div>
 
-      
-
-        {/* Authors Table */}
+        {/* Search */}
         <div className="bg-card rounded-lg">
           <div className="p-6 border-b border-border/20 mb-5">
             <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search stories..."
-                className="w-full pl-10 pr-4 py-2 bg-background border border-border/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                placeholder="Search authors..."
+                className="w-full pl-10 pr-4 py-2 bg-background border border-border/20 rounded-lg"
               />
-             
             </div>
           </div>
 
+          {/* Table */}
           <DataTable
             data={authors}
             columns={columns}
+            loading={isLoading}
             allActions={[
               {
                 label: "Edit",
                 icon: <Edit />,
-                onClick: (story) => console.log("Edit", story),
+                onClick: (author) => console.log("Edit", author),
               },
               {
                 label: "Delete",
                 icon: <Trash2 />,
-                onClick: (author) =>
-                  setAuthors((prev) => prev.filter((a) => a.id !== author.id)),
+                onClick: async (author) => await deleteAuthor(author.id),
               },
             ]}
-            emptyMessage="No authors found. Add your first author to get started!"
+            emptyMessage="No authors yet. Add one to get started!"
           />
         </div>
-        {/* Add Author Modal */}
+
+        {/* Add Modal */}
         <AddAuthorModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
-          onSubmit={handleAddAuthor}
         />
       </div>
     </DashboardLayout>
