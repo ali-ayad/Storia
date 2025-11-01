@@ -9,6 +9,9 @@ import { Plus, Edit, Search } from "lucide-react";
 import DataTable, { Column } from "@/components/dashboard/tables/DataTable";
 import AddStoryModal from "./addStroy";
 import { useGetStoriesQuery } from "@/Api/storiesApi";
+import Image from "next/image";
+import type { Story } from "@/Api/storiesApi";
+
 
 export default function StoriesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -16,28 +19,56 @@ export default function StoriesPage() {
   const { data: stories = [], isLoading, error } = useGetStoriesQuery();
   console.log("📌 Stories fetched:", stories);
 
-  const columns: Column<(typeof stories)[0]>[] = [
-    {
-      key: "title",
-      label: "Title",
-      render: (value) => <div className="font-medium">{value}</div>,
-    },
-    {
-  key: "author_id",
-  label: "Author",
-  render: (_, story: any) => story.authors?.name ?? "Unknown",
-},
-
-    {
-      key: "created_at",
-      label: "Created",
-      render: (value) => (
-        <span className="text-muted-foreground">
-          {value?.split("T")[0]}
-        </span>
+ const columns: Column<Story>[] = [
+  {
+    key: "image_url",
+    label: "Image",
+    width: "60px",
+    render: (value) =>
+      value ? (
+        <Image
+          src={value as string}
+          alt="story image"
+          width={50}
+          height={70}
+          className="rounded-md object-cover border"
+          unoptimized
+        />
+      ) : (
+        <span className="text-muted-foreground text-sm">No image</span>
       ),
+  },
+  {
+    key: "title",
+    label: "Title",
+   render: (value) => (
+  <div className="font-medium">
+    {typeof value === "string" ? value : ""}
+  </div>
+),
+
+  },
+  {
+    key: "author_id",
+    label: "Author",
+    render: (_value, story) => (
+      <span>{story.authors?.name ?? "Unknown"}</span>
+    ),
+  },
+  {
+    key: "created_at",
+    label: "Created",
+    render: (value) => {
+      const date = new Date(value as string);
+      return (
+        <span className="text-muted-foreground">
+          {date.toLocaleDateString()}
+        </span>
+      );
     },
-  ];
+  },
+];
+
 
   return (
     <WithAuth>

@@ -1,14 +1,20 @@
 import { supabaseApi } from './supabaseApi'
 import { supabase } from '@/lib/supabaseClient'
 
-type Story = {
+export type Story = {
   id: string;
   created_at: string;
   title: string;
   content: string;
   author_id: string | null;
   published_at: string | null;
+  image_url?: string | null;
+  authors?: {
+    id: string;
+    name: string;
+  } | null;
 };
+
 
 
 export const storiesApi = supabaseApi.injectEndpoints({

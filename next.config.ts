@@ -1,12 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // devIndicators: {
-  //   buildActivity: false, // hides the bottom-right overlay
-  // },
-    images: {
-    domains: ["img.freepik.com"], // allow Freepik images
+  
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "gjhhdtbqqrjydpkyukht.supabase.co", // ✅ your Supabase domain
+        pathname: "/storage/v1/object/public/**",
+      },
+      {
+        protocol: "https",
+        hostname: "img.freepik.com", // ✅ keep Freepik too
+      },
+    ],
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
