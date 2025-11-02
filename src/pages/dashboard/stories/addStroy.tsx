@@ -5,6 +5,8 @@ import { X } from "lucide-react";
 import { useAddStoryMutation } from "@/Api/storiesApi";
 import { useGetAuthorsQuery } from "@/Api/authorsApi";
 import { supabase } from "@/lib/supabaseClient";
+import { toast } from "sonner";
+ // ✅ Sonner Toast
 
 interface AddStoryModalProps {
   isOpen: boolean;
@@ -26,62 +28,69 @@ export default function AddStoryModal({ isOpen, onClose }: AddStoryModalProps) {
 
   if (!isOpen) return null;
 
- const handleImageUpload = async () => {
-  if (!imageFile) return null;
+  const handleImageUpload = async () => {
+    if (!imageFile) return null;
 
-  const fileExt = imageFile.name.split('.').pop();
-  const fileName = `${crypto.randomUUID()}.${fileExt}`;
-  const filePath = `stories/${fileName}`;
+    const fileExt = imageFile.name.split(".").pop();
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
+    const filePath = `stories/${fileName}`;
 
-  const { data: uploadData, error: uploadError } = await supabase.storage
-    .from("stories")
-    .upload(filePath, imageFile);
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("stories")
+      .upload(filePath, imageFile);
 
-  if (uploadError) {
-    console.error("Upload error:", uploadError);
-    return null;
-  }
+    if (uploadError) {
+      toast.error("❌ Image upload failed!");
+      console.error("Upload error:", uploadError);
+      return null;
+    }
 
-  const { data: urlData } = supabase.storage
-    .from("stories")
-    .getPublicUrl(filePath);
+    const { data: urlData } = supabase.storage
+      .from("stories")
+      .getPublicUrl(filePath);
 
-  console.log("Public URL:", urlData.publicUrl); // ✅ check it
-
-  return urlData.publicUrl ?? null;
-};
-
+    return urlData?.publicUrl ?? null;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     let image_url = null;
     if (imageFile) {
+      const uploadToast = toast.loading("Uploading image...");
       image_url = await handleImageUpload();
+      toast.dismiss(uploadToast);
+
+      if (!image_url) return; // ✅ Stop if upload failed
     }
 
     const newStory = {
       title: formData.title,
       content: formData.content,
       author_id: formData.author,
-      image_url, // ✅ Add the uploaded image URL
+      image_url,
     };
 
     try {
-      await addStory(newStory).unwrap();
+      const promise = addStory(newStory).unwrap();
+
+    
+
+      await promise;
+toast.success("Story added ✅");
       setFormData({ title: "", content: "", author: "" });
       setImageFile(null);
       setImagePreview(null);
       onClose();
     } catch (err) {
       console.error("Failed to add story:", err);
+      toast.error("❌ Something went wrong!");
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-card border border-border/20 rounded-lg w-full max-w-md">
-        
         <div className="flex items-center justify-between p-4 border-b border-border/20">
           <h2 className="text-lg font-semibold">Add New Story</h2>
           <button onClick={onClose} className="p-1 hover:bg-muted rounded">
@@ -90,21 +99,22 @@ export default function AddStoryModal({ isOpen, onClose }: AddStoryModalProps) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-3">
-          
-          {/* Title */}
           <input
             type="text"
             value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, title: e.target.value })
+            }
             className="w-full px-3 py-2 bg-background border border-border/20 rounded-lg text-sm"
             placeholder="Story title"
             required
           />
 
-          {/* Author */}
           <select
             value={formData.author}
-            onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, author: e.target.value })
+            }
             className="w-full px-3 py-2 bg-background border border-border/20 rounded-lg text-sm"
             required
           >
@@ -116,19 +126,21 @@ export default function AddStoryModal({ isOpen, onClose }: AddStoryModalProps) {
             ))}
           </select>
 
-          {/* Content */}
           <textarea
             value={formData.content}
-            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, content: e.target.value })
+            }
             rows={4}
             className="w-full px-3 py-2 bg-background border border-border/20 rounded-lg text-sm"
             placeholder="Enter content..."
             required
           />
 
-          {/* ✅ Image Upload */}
           <div>
-            <label className="block text-sm font-medium mb-1">Story Image</label>
+            <label className="block text-sm font-medium mb-1">
+              Story Image
+            </label>
             <input
               type="file"
               accept="image/*"
@@ -141,7 +153,6 @@ export default function AddStoryModal({ isOpen, onClose }: AddStoryModalProps) {
             />
           </div>
 
-          {/* ✅ Preview */}
           {imagePreview && (
             <img
               src={imagePreview}
@@ -151,11 +162,14 @@ export default function AddStoryModal({ isOpen, onClose }: AddStoryModalProps) {
           )}
 
           <div className="flex gap-2 pt-2">
-            <button type="submit" disabled={isLoading}
+            <button
+              type="submit"
+              disabled={isLoading}
               className="bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm font-medium flex-1"
             >
               {isLoading ? "Adding..." : "Add Story"}
             </button>
+
             <button
               type="button"
               onClick={onClose}
@@ -164,7 +178,6 @@ export default function AddStoryModal({ isOpen, onClose }: AddStoryModalProps) {
               Cancel
             </button>
           </div>
-
         </form>
       </div>
     </div>

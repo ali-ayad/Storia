@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { X } from "lucide-react";
-import { useAddAuthorMutation } from "@/Api/authorsApi"; // ✅ IMPORT MUTATION
+import { useAddAuthorMutation } from "@/Api/authorsApi";
+import { toast } from "sonner"; // ✅ Correct toast import
 
 interface AddAuthorModalProps {
   isOpen: boolean;
@@ -16,25 +17,34 @@ export default function AddAuthorModal({ isOpen, onClose }: AddAuthorModalProps)
     email: "",
   });
 
-  const [addAuthor, { isLoading, isSuccess, error }] = useAddAuthorMutation(); // ✅
+  const [addAuthor, { isLoading }] = useAddAuthorMutation();
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    await addAuthor(formData); // ✅ INSERT INTO SUPABASE
+    const loadingToast = toast.loading("Adding author..."); // ✅ Loading state
 
-    // Reset & close modal
-    setFormData({ name: "", bio: "", email: "" });
-    onClose();
+    try {
+      await addAuthor(formData).unwrap(); // ✅ Execute mutation safely
+
+      toast.dismiss(loadingToast);
+      toast.success("Author added ✅");
+
+      setFormData({ name: "", bio: "", email: "" });
+      onClose();
+    } catch (err) {
+      toast.dismiss(loadingToast);
+      toast.error("❌ Failed to add author!");
+      console.error("Add Author Error:", err);
+    }
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-card border border-border/20 rounded-lg w-full max-w-md">
-
-        {/* Header */}
+        
         <div className="flex items-center justify-between p-4 border-b border-border/20">
           <h2 className="text-lg font-semibold">Add New Author</h2>
           <button onClick={onClose} className="p-1 hover:bg-muted rounded transition-colors">
@@ -42,10 +52,8 @@ export default function AddAuthorModal({ isOpen, onClose }: AddAuthorModalProps)
           </button>
         </div>
 
-        {/* FORM */}
         <form onSubmit={handleSubmit} className="p-4 space-y-3">
-          {/* INPUTS */}
-          {/* Name */}
+          
           <label className="block text-sm font-medium mb-1">Name</label>
           <input
             type="text"
@@ -56,7 +64,6 @@ export default function AddAuthorModal({ isOpen, onClose }: AddAuthorModalProps)
             required
           />
 
-          {/* Bio */}
           <label className="block text-sm font-medium mb-1">Bio</label>
           <textarea
             value={formData.bio}
@@ -67,7 +74,6 @@ export default function AddAuthorModal({ isOpen, onClose }: AddAuthorModalProps)
             required
           />
 
-          {/* Email */}
           <label className="block text-sm font-medium mb-1">Email</label>
           <input
             type="email"
@@ -78,10 +84,6 @@ export default function AddAuthorModal({ isOpen, onClose }: AddAuthorModalProps)
             required
           />
 
-      
-        
-
-          {/* Buttons */}
           <div className="flex gap-2 pt-2">
             <button
               type="submit"
@@ -90,6 +92,7 @@ export default function AddAuthorModal({ isOpen, onClose }: AddAuthorModalProps)
             >
               {isLoading ? "Adding..." : "Add Author"}
             </button>
+
             <button
               type="button"
               onClick={onClose}
@@ -99,9 +102,6 @@ export default function AddAuthorModal({ isOpen, onClose }: AddAuthorModalProps)
             </button>
           </div>
 
-          {/* ✅ Feedback messages */}
-          {/* {isSuccess && <p className="text-green-500 text-xs pt-1">Author added ✅</p>}
-          {error && <p className="text-red-500 text-xs pt-1">Error adding author ❌</p>} */}
         </form>
       </div>
     </div>
