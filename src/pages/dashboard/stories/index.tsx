@@ -7,7 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Plus, Edit, Search } from "lucide-react";
 import DataTable, { Column } from "@/components/dashboard/tables/DataTable";
 import AddStoryModal from "./addStroy";
-import { useDeleteStoryMutation, useGetStoriesQuery } from "@/Api/storiesApi";
+import {
+  useDeleteStoryMutation,
+  useGetStoriesPaginatedQuery,
+  useGetStoriesQuery,
+} from "@/Api/storiesApi";
 import Image from "next/image";
 import type { Story } from "@/Api/storiesApi";
 import { toast } from "sonner";
@@ -16,7 +20,17 @@ import { DeletePopconfirm } from "@/components/DeletePopconfirm";
 export default function StoriesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data: stories = [], isLoading, error } = useGetStoriesQuery();
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
+
+  const { data, isLoading } = useGetStoriesPaginatedQuery(
+    { page, pageSize },
+    { refetchOnMountOrArgChange: true }
+  );
+
+  const stories = data?.data ?? [];
+  const total = data?.count ?? 0;
+
   const [deleteStory, { isLoading: deleting }] = useDeleteStoryMutation();
 
   const columns: Column<Story>[] = [
@@ -66,38 +80,35 @@ export default function StoriesPage() {
         );
       },
     },
-     {
-    key: "actions",
-    label: "Actions",
-    width: "120px",
-    render: (_value, story) => (
-      <div className="flex gap-3 items-center">
-        {/* Edit */}
-        <button onClick={() => console.log("Edit",story)}>
-          <Edit className="w-4 h-4 text-blue-500 cursor-pointer" />
-        </button>
+    {
+      key: "actions",
+      label: "Actions",
+      width: "120px",
+      render: (_value, story) => (
+        <div className="flex gap-3 items-center">
+          {/* Edit */}
+          <button onClick={() => console.log("Edit", story)}>
+            <Edit className="w-4 h-4 text-blue-500 cursor-pointer" />
+          </button>
 
-        {/* Delete with confirmation */}
-        <DeletePopconfirm
-         title="Delete this story?"
-          onConfirm={() => handleDelete(story.id)}
-        />
-      </div>
-    ),
-  },
+          {/* Delete with confirmation */}
+          <DeletePopconfirm
+            title="Delete this story?"
+            onConfirm={() => handleDelete(story.id)}
+          />
+        </div>
+      ),
+    },
   ];
- const handleDelete = async (id: string) => {
- 
+  const handleDelete = async (id: string) => {
+    const { error } = await deleteStory(id);
 
-  const { error } = await deleteStory(id);
-
-  if (error) {
-    toast.error("Delete failed");
-  } else {
-    toast.success("Story deleted ✅");
-  }
-};
-
+    if (error) {
+      toast.error("Delete failed");
+    } else {
+      toast.success("Story deleted ✅");
+    }
+  };
 
   return (
     <WithAuth>
@@ -142,7 +153,12 @@ export default function StoriesPage() {
                   <p className="text-muted-foreground">{story.content}</p>
                 </div>
               )}
-            
+              pagination={{
+                page,
+                pageSize,
+                total,
+                onPageChange: setPage,
+              }}
               emptyMessage="No stories found. Add your first story!"
             />
           </div>

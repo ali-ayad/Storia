@@ -8,30 +8,34 @@ import { Plus, Edit, Trash2, Mail, Globe, Search } from "lucide-react";
 import DataTable, { Column } from "@/components/dashboard/tables/DataTable";
 import AddAuthorModal from "./addAother"; // your modal
 import {
-  useGetAuthorsQuery,
   useDeleteAuthorMutation,
+  useGetAuthorsPaginatedQuery,
 } from "@/Api/authorsApi";
 import { DeletePopconfirm } from "@/components/DeletePopconfirm";
 import { toast } from "sonner";
 
 export default function AuthorsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
 
-  const { data: authors = [], isLoading, error } = useGetAuthorsQuery();
   const [deleteAuthor] = useDeleteAuthorMutation();
+  const { data, isLoading } = useGetAuthorsPaginatedQuery({ page, pageSize });
 
-const handleDelete = async (id: string) => {
-  const { error } = await deleteAuthor(id);
+  const authors = data?.data ?? [];
+  const total = data?.count ?? 0;
 
-  if (error) {
-    toast.error("Failed to delete author");
-  } else {
-    toast.success("Author deleted ✅");
-  }
-};
+  const handleDelete = async (id: string) => {
+    const { error } = await deleteAuthor(id);
 
+    if (error) {
+      toast.error("Failed to delete author");
+    } else {
+      toast.success("Author deleted ✅");
+    }
+  };
 
-  const columns: Column<typeof authors[0]>[] = [
+  const columns: Column<(typeof authors)[0]>[] = [
     {
       key: "name",
       label: "Author",
@@ -53,7 +57,6 @@ const handleDelete = async (id: string) => {
             <Mail className="h-3 w-3" />
             {value}
           </div>
-         
         </div>
       ),
     },
@@ -61,30 +64,28 @@ const handleDelete = async (id: string) => {
       key: "created_at",
       label: "Joined",
       render: (value) => (
-        <span className="text-muted-foreground">
-          {value?.split("T")[0]}
-        </span>
+        <span className="text-muted-foreground">{value?.split("T")[0]}</span>
       ),
     },
     {
-    key: "actions", // ✅ UI-only column
-    label: "Actions",
-    width: "120px",
-    render: (_value, author) => (
-      <div className="flex gap-3 items-center">
-        {/* Edit Action */}
-        <button onClick={() => console.log("Edit", author)}>
-          <Edit className="w-4 h-4 text-blue-500 cursor-pointer" />
-        </button>
+      key: "actions", // ✅ UI-only column
+      label: "Actions",
+      width: "120px",
+      render: (_value, author) => (
+        <div className="flex gap-3 items-center">
+          {/* Edit Action */}
+          <button onClick={() => console.log("Edit", author)}>
+            <Edit className="w-4 h-4 text-blue-500 cursor-pointer" />
+          </button>
 
-        {/* Delete Action */}
-        <DeletePopconfirm
-         title="Delete this author?"
-          onConfirm={() => handleDelete(author.id)}
-        />
-      </div>
-    ),
-  },
+          {/* Delete Action */}
+          <DeletePopconfirm
+            title="Delete this author?"
+            onConfirm={() => handleDelete(author.id)}
+          />
+        </div>
+      ),
+    },
   ];
 
   return (
@@ -123,6 +124,12 @@ const handleDelete = async (id: string) => {
             data={authors}
             columns={columns}
             loading={isLoading}
+            pagination={{
+              page,
+              pageSize,
+              total,
+              onPageChange: setPage,
+            }}
             emptyMessage="No authors yet. Add one to get started!"
           />
         </div>

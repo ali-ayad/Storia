@@ -35,6 +35,42 @@ export const storiesApi = supabaseApi.injectEndpoints({
       },
       providesTags: ['Stories'],
     }),
+    // ✅ GET stories with pagination support
+getStoriesPaginated: builder.query<
+  { data: Story[]; count: number },
+  { page: number; pageSize: number }
+>({
+  async queryFn({ page, pageSize }) {
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize - 1;
+
+    const { data, error, count } = await supabase
+      .from("stories")
+      .select(
+        `
+        *,
+        authors (
+          id,
+          name
+        )
+      `,
+        { count: "exact" } // ✅ required for pagination
+      )
+      .range(start, end);
+
+    if (error) return { error };
+
+    return {
+      data: {
+        data: data ?? [],
+        count: count ?? 0,
+      },
+    };
+  },
+  providesTags: ["Stories"],
+  // refetchOnMountOrArgChange: true, // ✅ ensures refresh when page changes
+}),
+
 
     // ADD a new story
     addStory: builder.mutation<Story[], Partial<Story>>({
@@ -81,4 +117,5 @@ export const {
   useAddStoryMutation,
   useUpdateStoryMutation,
   useDeleteStoryMutation,
+   useGetStoriesPaginatedQuery,
 } = storiesApi
