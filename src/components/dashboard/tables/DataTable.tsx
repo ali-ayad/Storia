@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 export interface Column<T> {
-  key: keyof T;
+   key: keyof T | string;
   label: string;
   width?: string;
   render?: (value: T[keyof T], item: T) => React.ReactNode;

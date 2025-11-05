@@ -4,70 +4,99 @@ import { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import WithAuth from "@/components/dashboard/withAuth";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Search } from "lucide-react";
 import DataTable, { Column } from "@/components/dashboard/tables/DataTable";
 import AddStoryModal from "./addStroy";
-import { useGetStoriesQuery } from "@/Api/storiesApi";
+import { useDeleteStoryMutation, useGetStoriesQuery } from "@/Api/storiesApi";
 import Image from "next/image";
 import type { Story } from "@/Api/storiesApi";
-
+import { toast } from "sonner";
+import { DeletePopconfirm } from "@/components/DeletePopconfirm";
 
 export default function StoriesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: stories = [], isLoading, error } = useGetStoriesQuery();
-  console.log("📌 Stories fetched:", stories);
+  const [deleteStory, { isLoading: deleting }] = useDeleteStoryMutation();
 
- const columns: Column<Story>[] = [
-  {
-    key: "image_url",
-    label: "Image",
-    width: "60px",
-    render: (value) =>
-      value ? (
-        <Image
-          src={value as string}
-          alt="story image"
-          width={50}
-          height={70}
-          className="rounded-md object-cover border"
-          unoptimized
-        />
-      ) : (
-        <span className="text-muted-foreground text-sm">No image</span>
+  const columns: Column<Story>[] = [
+    {
+      key: "image_url",
+      label: "Image",
+      width: "60px",
+      render: (value) =>
+        value ? (
+          <Image
+            src={value as string}
+            alt="story image"
+            width={50}
+            height={70}
+            className="rounded-md object-cover border"
+            unoptimized
+          />
+        ) : (
+          <span className="text-muted-foreground text-sm">No image</span>
+        ),
+    },
+    {
+      key: "title",
+      label: "Title",
+      render: (value) => (
+        <div className="font-medium">
+          {typeof value === "string" ? value : ""}
+        </div>
       ),
-  },
-  {
-    key: "title",
-    label: "Title",
-   render: (value) => (
-  <div className="font-medium">
-    {typeof value === "string" ? value : ""}
-  </div>
-),
-
-  },
-  {
-    key: "author_id",
-    label: "Author",
+    },
+    {
+      key: "author_id",
+      label: "Author",
+      render: (_value, story) => (
+        <span>{story.authors?.name ?? "Unknown"}</span>
+      ),
+    },
+    {
+      key: "created_at",
+      label: "Created",
+      render: (value) => {
+        const date = new Date(value as string);
+        return (
+          <span className="text-muted-foreground">
+            {date.toLocaleDateString()}
+          </span>
+        );
+      },
+    },
+     {
+    key: "actions",
+    label: "Actions",
+    width: "120px",
     render: (_value, story) => (
-      <span>{story.authors?.name ?? "Unknown"}</span>
+      <div className="flex gap-3 items-center">
+        {/* Edit */}
+        <button onClick={() => console.log("Edit",story)}>
+          <Edit className="w-4 h-4 text-blue-500 cursor-pointer" />
+        </button>
+
+        {/* Delete with confirmation */}
+        <DeletePopconfirm
+         title="Delete this story?"
+          onConfirm={() => handleDelete(story.id)}
+        />
+      </div>
     ),
   },
-  {
-    key: "created_at",
-    label: "Created",
-    render: (value) => {
-      const date = new Date(value as string);
-      return (
-        <span className="text-muted-foreground">
-          {date.toLocaleDateString()}
-        </span>
-      );
-    },
-  },
-];
+  ];
+ const handleDelete = async (id: string) => {
+ 
+
+  const { error } = await deleteStory(id);
+
+  if (error) {
+    toast.error("Delete failed");
+  } else {
+    toast.success("Story deleted ✅");
+  }
+};
 
 
   return (
@@ -113,13 +142,7 @@ export default function StoriesPage() {
                   <p className="text-muted-foreground">{story.content}</p>
                 </div>
               )}
-              allActions={[
-                {
-                  label: "Edit",
-                  icon: <Edit className="w-4 h-4" />,
-                  onClick: (story) => console.log("Edit", story),
-                },
-              ]}
+            
               emptyMessage="No stories found. Add your first story!"
             />
           </div>

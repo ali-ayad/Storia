@@ -11,6 +11,8 @@ import {
   useGetAuthorsQuery,
   useDeleteAuthorMutation,
 } from "@/Api/authorsApi";
+import { DeletePopconfirm } from "@/components/DeletePopconfirm";
+import { toast } from "sonner";
 
 export default function AuthorsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -18,9 +20,16 @@ export default function AuthorsPage() {
   const { data: authors = [], isLoading, error } = useGetAuthorsQuery();
   const [deleteAuthor] = useDeleteAuthorMutation();
 
-  const getStatusBadge = () => (
-    <Badge variant="default">Active</Badge>
-  );
+const handleDelete = async (id: string) => {
+  const { error } = await deleteAuthor(id);
+
+  if (error) {
+    toast.error("Failed to delete author");
+  } else {
+    toast.success("Author deleted ✅");
+  }
+};
+
 
   const columns: Column<typeof authors[0]>[] = [
     {
@@ -57,6 +66,25 @@ export default function AuthorsPage() {
         </span>
       ),
     },
+    {
+    key: "actions", // ✅ UI-only column
+    label: "Actions",
+    width: "120px",
+    render: (_value, author) => (
+      <div className="flex gap-3 items-center">
+        {/* Edit Action */}
+        <button onClick={() => console.log("Edit", author)}>
+          <Edit className="w-4 h-4 text-blue-500 cursor-pointer" />
+        </button>
+
+        {/* Delete Action */}
+        <DeletePopconfirm
+         title="Delete this author?"
+          onConfirm={() => handleDelete(author.id)}
+        />
+      </div>
+    ),
+  },
   ];
 
   return (
@@ -95,18 +123,6 @@ export default function AuthorsPage() {
             data={authors}
             columns={columns}
             loading={isLoading}
-            allActions={[
-              {
-                label: "Edit",
-                icon: <Edit />,
-                onClick: (author) => console.log("Edit", author),
-              },
-              {
-                label: "Delete",
-                icon: <Trash2 />,
-                onClick: async (author) => await deleteAuthor(author.id),
-              },
-            ]}
             emptyMessage="No authors yet. Add one to get started!"
           />
         </div>

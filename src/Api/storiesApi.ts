@@ -50,7 +50,7 @@ export const storiesApi = supabaseApi.injectEndpoints({
     }),
 
     // UPDATE a story
-    updateStory: builder.mutation<Story[], { id: number; updates: Partial<Story> }>({
+    updateStory: builder.mutation<Story[], { id: string; updates: Partial<Story> }>({
       async queryFn({ id, updates }) {
         const { data, error } = await supabase
           .from('stories')
@@ -64,7 +64,7 @@ export const storiesApi = supabaseApi.injectEndpoints({
     }),
 
     // DELETE a story
-    deleteStory: builder.mutation<{ id: number }, number>({
+    deleteStory: builder.mutation<{ id: string }, string>({
       async queryFn(id) {
         const { error } = await supabase.from('stories').delete().eq('id', id)
         if (error) return { error }
