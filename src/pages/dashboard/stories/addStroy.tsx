@@ -4,9 +4,8 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { useAddStoryMutation } from "@/Api/storiesApi";
 import { useGetAuthorsQuery } from "@/Api/authorsApi";
-import { supabase } from "@/lib/supabaseClient";
 import { toast } from "sonner";
- // ✅ Sonner Toast
+import ImageUpload from "@/components/ImageUpload";
 
 interface AddStoryModalProps {
   isOpen: boolean;
@@ -18,69 +17,36 @@ export default function AddStoryModal({ isOpen, onClose }: AddStoryModalProps) {
     title: "",
     content: "",
     author: "",
+    image_url: "",
   });
-
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const { data: authors = [] } = useGetAuthorsQuery();
   const [addStory, { isLoading }] = useAddStoryMutation();
 
   if (!isOpen) return null;
 
-  const handleImageUpload = async () => {
-    if (!imageFile) return null;
-
-    const fileExt = imageFile.name.split(".").pop();
-    const fileName = `${crypto.randomUUID()}.${fileExt}`;
-    const filePath = `stories/${fileName}`;
-
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("stories")
-      .upload(filePath, imageFile);
-
-    if (uploadError) {
-      toast.error("❌ Image upload failed!");
-      console.error("Upload error:", uploadError);
-      return null;
-    }
-
-    const { data: urlData } = supabase.storage
-      .from("stories")
-      .getPublicUrl(filePath);
-
-    return urlData?.publicUrl ?? null;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    let image_url = null;
-    if (imageFile) {
-      const uploadToast = toast.loading("Uploading image...");
-      image_url = await handleImageUpload();
-      toast.dismiss(uploadToast);
-
-      if (!image_url) return; // ✅ Stop if upload failed
-    }
 
     const newStory = {
       title: formData.title,
       content: formData.content,
       author_id: formData.author,
-      image_url,
+      image_url: formData.image_url || null,
     };
 
     try {
-      const promise = addStory(newStory).unwrap();
+      await addStory(newStory).unwrap();
+      toast.success("Story added ✅");
 
-    
+      // Reset form
+      setFormData({
+        title: "",
+        content: "",
+        author: "",
+        image_url: "",
+      });
 
-      await promise;
-toast.success("Story added ✅");
-      setFormData({ title: "", content: "", author: "" });
-      setImageFile(null);
-      setImagePreview(null);
       onClose();
     } catch (err) {
       console.error("Failed to add story:", err);
@@ -99,6 +65,7 @@ toast.success("Story added ✅");
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-3">
+          {/* Title */}
           <input
             type="text"
             value={formData.title}
@@ -110,6 +77,7 @@ toast.success("Story added ✅");
             required
           />
 
+          {/* Author */}
           <select
             value={formData.author}
             onChange={(e) =>
@@ -126,6 +94,7 @@ toast.success("Story added ✅");
             ))}
           </select>
 
+          {/* Content */}
           <textarea
             value={formData.content}
             onChange={(e) =>
@@ -137,30 +106,19 @@ toast.success("Story added ✅");
             required
           />
 
+          {/* Image Upload */}
           <div>
             <label className="block text-sm font-medium mb-1">
               Story Image
             </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0] || null;
-                setImageFile(file);
-                setImagePreview(file ? URL.createObjectURL(file) : null);
-              }}
-              className="w-full text-sm"
-            />
+           <ImageUpload
+  bucket="stories"
+  onUploadComplete={(url) => setFormData({ ...formData, image_url: url })}
+/>
+
           </div>
 
-          {imagePreview && (
-            <img
-              src={imagePreview}
-              alt="Preview"
-              className="w-full h-32 object-cover rounded-lg border"
-            />
-          )}
-
+          {/* Buttons */}
           <div className="flex gap-2 pt-2">
             <button
               type="submit"

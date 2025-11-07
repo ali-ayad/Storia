@@ -3,76 +3,46 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { useAddAuthorMutation } from "@/Api/authorsApi";
-import { supabase } from "@/lib/supabaseClient";
-import { toast } from "sonner"; // ✅ Correct toast import
+import { toast } from "sonner";
+import ImageUpload from "@/components/ImageUpload"; // ✅ Spinner-based uploader
 
 interface AddAuthorModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function AddAuthorModal({ isOpen, onClose }: AddAuthorModalProps) {
+export default function AddAuthorModal({
+  isOpen,
+  onClose,
+}: AddAuthorModalProps) {
   const [formData, setFormData] = useState({
     name: "",
     bio: "",
     email: "",
+    image_url: "",
   });
-
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [addAuthor, { isLoading }] = useAddAuthorMutation();
 
   if (!isOpen) return null;
-
-  // ✅ Upload image to Supabase storage
-  const handleImageUpload = async () => {
-    if (!imageFile) return null;
-
-    const fileExt = imageFile.name.split(".").pop();
-    const fileName = `${crypto.randomUUID()}.${fileExt}`;
-    const filePath = `authors/${fileName}`;
-
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("authors")
-      .upload(filePath, imageFile);
-
-    if (uploadError) {
-      toast.error("❌ Image upload failed!");
-      console.error("Upload error:", uploadError);
-      return null;
-    }
-
-    const { data: urlData } = supabase.storage
-      .from("authors")
-      .getPublicUrl(filePath);
-
-    return urlData?.publicUrl ?? null;
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const loadingToast = toast.loading("Adding author...");
 
-    let image_url = null;
-    if (imageFile) {
-      image_url = await handleImageUpload();
-      if (!image_url) {
-        toast.dismiss(loadingToast);
-        return; // stop on upload failure
-      }
-    }
-
     try {
-      await addAuthor({ ...formData, image_url }).unwrap();
-
+      await addAuthor(formData).unwrap();
       toast.dismiss(loadingToast);
       toast.success("Author added ✅");
 
-      setFormData({ name: "", bio: "", email: "" });
-      setImageFile(null);
-      setImagePreview(null);
+      // Reset
+      setFormData({
+        name: "",
+        bio: "",
+        email: "",
+        image_url: "",
+      });
       onClose();
     } catch (err) {
       toast.dismiss(loadingToast);
@@ -84,14 +54,20 @@ export default function AddAuthorModal({ isOpen, onClose }: AddAuthorModalProps)
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-card border border-border/20 rounded-lg w-full max-w-md">
+        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border/20">
           <h2 className="text-lg font-semibold">Add New Author</h2>
-          <button onClick={onClose} className="p-1 hover:bg-muted rounded transition-colors">
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-muted rounded transition-colors"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
 
+        {/* Form */}
         <form onSubmit={handleSubmit} className="p-4 space-y-3">
+          {/* Name */}
           <label className="block text-sm font-medium mb-1">Name</label>
           <input
             type="text"
@@ -102,6 +78,7 @@ export default function AddAuthorModal({ isOpen, onClose }: AddAuthorModalProps)
             required
           />
 
+          {/* Bio */}
           <label className="block text-sm font-medium mb-1">Bio</label>
           <textarea
             value={formData.bio}
@@ -112,39 +89,33 @@ export default function AddAuthorModal({ isOpen, onClose }: AddAuthorModalProps)
             required
           />
 
+          {/* Email */}
           <label className="block text-sm font-medium mb-1">Email</label>
           <input
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
             className="w-full px-3 py-2 bg-background border border-border/20 rounded-lg"
             placeholder="author@example.com"
             required
           />
 
-          {/* ✅ Image upload section */}
+          {/* ✅ Image Upload Section (Spinner-based) */}
           <div>
-            <label className="block text-sm font-medium mb-1">Profile Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0] || null;
-                setImageFile(file);
-                setImagePreview(file ? URL.createObjectURL(file) : null);
-              }}
-              className="w-full text-sm"
+            <label className="block text-sm font-medium mb-1">
+              Profile Image
+            </label>
+            <ImageUpload
+              bucket="authors"
+              onUploadComplete={(url) =>
+                setFormData({ ...formData, image_url: url })
+              }
             />
           </div>
 
-          {imagePreview && (
-            <img
-              src={imagePreview}
-              alt="Preview"
-              className="w-full h-32 object-cover rounded-lg border"
-            />
-          )}
-
+          {/* Buttons */}
           <div className="flex gap-2 pt-2">
             <button
               type="submit"
