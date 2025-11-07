@@ -13,6 +13,7 @@ import {
 } from "@/Api/authorsApi";
 import { DeletePopconfirm } from "@/components/DeletePopconfirm";
 import { toast } from "sonner";
+import Image from "next/image";
 
 export default function AuthorsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -36,6 +37,24 @@ export default function AuthorsPage() {
   };
 
   const columns: Column<(typeof authors)[0]>[] = [
+     {
+          key: "image_url",
+          label: "Image",
+          width: "60px",
+          render: (value) =>
+            value ? (
+              <Image
+                src={value as string}
+                alt="story image"
+                width={50}
+                height={70}
+                className="rounded-md object-cover border"
+                unoptimized
+              />
+            ) : (
+              <span className="text-muted-foreground text-sm">No image</span>
+            ),
+        },
     {
       key: "name",
       label: "Author",

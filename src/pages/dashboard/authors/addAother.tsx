@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { useAddAuthorMutation } from "@/Api/authorsApi";
+import { supabase } from "@/lib/supabaseClient";
 import { toast } from "sonner"; // ✅ Correct toast import
 
 interface AddAuthorModalProps {
@@ -17,22 +18,61 @@ export default function AddAuthorModal({ isOpen, onClose }: AddAuthorModalProps)
     email: "",
   });
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
   const [addAuthor, { isLoading }] = useAddAuthorMutation();
 
   if (!isOpen) return null;
 
+  // ✅ Upload image to Supabase storage
+  const handleImageUpload = async () => {
+    if (!imageFile) return null;
+
+    const fileExt = imageFile.name.split(".").pop();
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
+    const filePath = `authors/${fileName}`;
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("authors")
+      .upload(filePath, imageFile);
+
+    if (uploadError) {
+      toast.error("❌ Image upload failed!");
+      console.error("Upload error:", uploadError);
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("authors")
+      .getPublicUrl(filePath);
+
+    return urlData?.publicUrl ?? null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const loadingToast = toast.loading("Adding author..."); // ✅ Loading state
+    const loadingToast = toast.loading("Adding author...");
+
+    let image_url = null;
+    if (imageFile) {
+      image_url = await handleImageUpload();
+      if (!image_url) {
+        toast.dismiss(loadingToast);
+        return; // stop on upload failure
+      }
+    }
 
     try {
-      await addAuthor(formData).unwrap(); // ✅ Execute mutation safely
+      await addAuthor({ ...formData, image_url }).unwrap();
 
       toast.dismiss(loadingToast);
       toast.success("Author added ✅");
 
       setFormData({ name: "", bio: "", email: "" });
+      setImageFile(null);
+      setImagePreview(null);
       onClose();
     } catch (err) {
       toast.dismiss(loadingToast);
@@ -44,7 +84,6 @@ export default function AddAuthorModal({ isOpen, onClose }: AddAuthorModalProps)
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-card border border-border/20 rounded-lg w-full max-w-md">
-        
         <div className="flex items-center justify-between p-4 border-b border-border/20">
           <h2 className="text-lg font-semibold">Add New Author</h2>
           <button onClick={onClose} className="p-1 hover:bg-muted rounded transition-colors">
@@ -53,7 +92,6 @@ export default function AddAuthorModal({ isOpen, onClose }: AddAuthorModalProps)
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-3">
-          
           <label className="block text-sm font-medium mb-1">Name</label>
           <input
             type="text"
@@ -84,6 +122,29 @@ export default function AddAuthorModal({ isOpen, onClose }: AddAuthorModalProps)
             required
           />
 
+          {/* ✅ Image upload section */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Profile Image</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0] || null;
+                setImageFile(file);
+                setImagePreview(file ? URL.createObjectURL(file) : null);
+              }}
+              className="w-full text-sm"
+            />
+          </div>
+
+          {imagePreview && (
+            <img
+              src={imagePreview}
+              alt="Preview"
+              className="w-full h-32 object-cover rounded-lg border"
+            />
+          )}
+
           <div className="flex gap-2 pt-2">
             <button
               type="submit"
@@ -101,7 +162,6 @@ export default function AddAuthorModal({ isOpen, onClose }: AddAuthorModalProps)
               Cancel
             </button>
           </div>
-
         </form>
       </div>
     </div>

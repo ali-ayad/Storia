@@ -7,6 +7,7 @@ type Author = {
   name: string;
   email: string;
   bio?: string | null;
+  image_url?: string | null;
 };
 
 export const authorsApi = supabaseApi.injectEndpoints({
