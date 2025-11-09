@@ -19,10 +19,15 @@ import Image from "next/image";
 export default function AuthorsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
   const pageSize = 10;
 
   const [deleteAuthor] = useDeleteAuthorMutation();
-  const { data, isLoading } = useGetAuthorsPaginatedQuery({ page, pageSize });
+  const { data, isLoading } = useGetAuthorsPaginatedQuery({
+    page,
+    pageSize,
+    search,
+  });
 
   const authors = data?.data ?? [];
   const total = data?.count ?? 0;
@@ -45,7 +50,7 @@ export default function AuthorsPage() {
       render: (_value, _item, index) => <span>{(index ?? 0) + 1}</span>,
     },
 
-      {
+    {
       key: "image_url",
       label: "Image",
       width: "70px",
@@ -159,6 +164,8 @@ export default function AuthorsPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <input
                 type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search authors..."
                 className="w-full pl-10 pr-4 py-2 bg-background border border-border/20 rounded-lg"
               />

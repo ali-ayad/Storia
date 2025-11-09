@@ -36,15 +36,17 @@ export const storiesApi = supabaseApi.injectEndpoints({
       providesTags: ['Stories'],
     }),
     // ✅ GET stories with pagination support
+// ✅ GET stories with pagination + search support
 getStoriesPaginated: builder.query<
   { data: Story[]; count: number },
-  { page: number; pageSize: number }
+  { page: number; pageSize: number; search?: string }
 >({
-  async queryFn({ page, pageSize }) {
+  async queryFn({ page, pageSize, search = "" }) {
     const start = (page - 1) * pageSize;
     const end = start + pageSize - 1;
 
-    const { data, error, count } = await supabase
+    // Base query
+    let query = supabase
       .from("stories")
       .select(
         `
@@ -54,9 +56,17 @@ getStoriesPaginated: builder.query<
           name
         )
       `,
-        { count: "exact" } // ✅ required for pagination
+        { count: "exact" }
       )
-      .range(start, end);
+      .range(start, end)
+      .order("created_at", { ascending: false });
+
+    // 🔍 Apply search filter if search string is not empty
+ if (search.trim() !== "") {
+  query = query.ilike("title", `%${search}%`);
+}
+
+    const { data, error, count } = await query;
 
     if (error) return { error };
 
@@ -68,8 +78,8 @@ getStoriesPaginated: builder.query<
     };
   },
   providesTags: ["Stories"],
-  // refetchOnMountOrArgChange: true, // ✅ ensures refresh when page changes
 }),
+
 
 
     // ADD a new story

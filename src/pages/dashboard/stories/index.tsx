@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import WithAuth from "@/components/dashboard/withAuth";
 import { Button } from "@/components/ui/button";
@@ -22,10 +22,11 @@ export default function StoriesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
   const pageSize = 10;
 
   const { data, isLoading } = useGetStoriesPaginatedQuery(
-    { page, pageSize },
+    { page, pageSize,search },
     { refetchOnMountOrArgChange: true }
   );
 
@@ -124,6 +125,7 @@ export default function StoriesPage() {
       ),
     },
   ];
+
   const handleDelete = async (id: string) => {
     const { error } = await deleteStory(id);
 
@@ -133,6 +135,10 @@ export default function StoriesPage() {
       toast.success("Story deleted ✅");
     }
   };
+
+  useEffect(() => {
+  setPage(1);
+}, [search]);
 
   return (
     <WithAuth>
@@ -158,6 +164,8 @@ export default function StoriesPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <input
                   type="text"
+                   value={search}
+                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search stories..."
                   className="w-full pl-10 pr-4 py-2 bg-background border border-border/20 rounded-lg focus:ring-primary/20 transition"
                 />

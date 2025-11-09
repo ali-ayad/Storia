@@ -14,24 +14,39 @@ export const authorsApi = supabaseApi.injectEndpoints({
   endpoints: (builder) => ({
     
     // ✅ GET paginated authors
-    getAuthorsPaginated: builder.query<
-      { data: Author[]; count: number },
-      { page: number; pageSize: number }
-    >({
-      async queryFn({ page, pageSize }) {
-        const start = (page - 1) * pageSize;
-        const end = start + pageSize - 1;
+  getAuthorsPaginated: builder.query<
+  { data: Author[]; count: number },
+  { page: number; pageSize: number; search?: string }
+>({
+  async queryFn({ page, pageSize, search = "" }) {
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize - 1;
 
-        const { data, error, count } = await supabase
-          .from('authors')
-          .select("*", { count: "exact" })
-          .range(start, end)
+    // Base query
+    let query = supabase
+      .from("authors")
+      .select("*", { count: "exact" })
+      .range(start, end)
+      .order("created_at", { ascending: false });
 
-        if (error) return { error }
-        return { data: { data, count: count ?? 0 } }
+    // 🔍 Filter by name (case-insensitive)
+    if (search.trim() !== "") {
+      query = query.ilike("name", `%${search}%`);
+    }
+
+    const { data, error, count } = await query;
+
+    if (error) return { error };
+
+    return {
+      data: {
+        data: data ?? [],
+        count: count ?? 0,
       },
-      providesTags: ["Authors"],
-    }),
+    };
+  },
+  providesTags: ["Authors"],
+}),
 
     // ✅ GET all authors (no pagination)
     getAuthors: builder.query<Author[], void>({
