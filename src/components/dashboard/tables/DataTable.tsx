@@ -1,6 +1,14 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import React, { useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Pagination,
   PaginationContent,
@@ -8,8 +16,7 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from "@/components/ui/pagination";
-
-import React, { useState } from "react";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 export interface HasId {
   id: string;
@@ -19,7 +26,7 @@ export interface Column<T extends HasId> {
   key: keyof T | string;
   label: string;
   width?: string;
-  render?: (value: T[keyof T], item: T) => React.ReactNode;
+  render?: (value: T[keyof T], item: T, index?: number) => React.ReactNode;
 }
 
 interface PaginationProps {
@@ -48,9 +55,15 @@ export default function DataTable<T extends HasId>({
 }: DataTableProps<T>) {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
-  const renderCellValue = (column: Column<T>, item: T): React.ReactNode => {
+  const renderCellValue = (
+    column: Column<T>,
+    item: T,
+    index?: number
+  ): React.ReactNode => {
     const value = item[column.key as keyof T];
-    return column.render ? column.render(value, item) : (value as React.ReactNode);
+    return column.render
+      ? column.render(value, item, index)
+      : (value as React.ReactNode);
   };
 
   if (loading) {
@@ -63,95 +76,98 @@ export default function DataTable<T extends HasId>({
 
   if (!data.length) {
     return (
-      <p className="text-center text-muted-foreground p-6">
-        {emptyMessage}
-      </p>
+      <p className="text-center text-muted-foreground p-6">{emptyMessage}</p>
     );
   }
 
   return (
     <div className="pb-4">
-      <table className="w-full border-collapse ">
-        <thead className="bg-muted/50">
-          <tr>
-            {columns.map((column) => (
-              <th
-                key={String(column.key)}
-                className="text-left p-4 font-semibold text-muted-foreground"
-                style={{ width: column.width }}
-              >
-                {column.label}
-              </th>
+      <ScrollArea className="w-full  h-[50vh]">
+        <Table>
+          <TableHeader className="bg-muted/50 sticky top-0">
+            <TableRow>
+              {columns.map((column) => (
+                <TableHead
+                  key={String(column.key)}
+                  style={{ width: column.width }}
+                  className="text-left font-semibold text-muted-foreground"
+                >
+                  {column.label}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {data.map((item,index) => (
+              <React.Fragment key={item.id}>
+                <TableRow
+                  className="border-b border-border/20 hover:bg-muted/30 transition cursor-pointer"
+                  onClick={() =>
+                    expandableRow &&
+                    setExpandedRow((prev) =>
+                      prev === item.id ? null : item.id
+                    )
+                  }
+                >
+                  {columns.map((column) => (
+                    <TableCell key={String(column.key)} className="p-4">
+                      {renderCellValue(column, item, index)}
+                    </TableCell>
+                  ))}
+                </TableRow>
+
+                {expandableRow && expandedRow === item.id && (
+                  <TableRow className="bg-muted/20">
+                    <TableCell colSpan={columns.length} className="p-4">
+                      {expandableRow(item)}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </React.Fragment>
             ))}
-          </tr>
-        </thead>
-
-        <tbody>
-          {data.map((item) => (
-            <React.Fragment key={item.id}>
-              <tr className="border-b border-border/20 hover:bg-muted/30 transition">
-                {columns.map((column) => (
-                  <td key={String(column.key)} className="p-4">
-                    {renderCellValue(column, item)}
-                  </td>
-                ))}
-              </tr>
-
-              {expandableRow && expandedRow === item.id && (
-                <tr className="bg-muted/20">
-                  <td colSpan={columns.length} className="p-4">
-                    {expandableRow(item)}
-                  </td>
-                </tr>
-              )}
-            </React.Fragment>
-          ))}
-        </tbody>
-      </table>
+          </TableBody>
+        </Table>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
 
       {/* ✅ Pagination Controls */}
-    {pagination && (
-  <Pagination>
-    <PaginationContent className="mt-4">
-      
-      {/* Previous */}
-      <PaginationItem>
-        <PaginationPrevious
-          className="cursor-pointer"
-          aria-disabled={pagination.page <= 1}
-          onClick={() =>
-            pagination.page > 1 &&
-            pagination.onPageChange(pagination.page - 1)
-          }
-        />
-      </PaginationItem>
+      {pagination && (
+        <Pagination>
+          <PaginationContent className="mt-4">
+            <PaginationItem>
+              <PaginationPrevious
+                className="cursor-pointer"
+                aria-disabled={pagination.page <= 1}
+                onClick={() =>
+                  pagination.page > 1 &&
+                  pagination.onPageChange(pagination.page - 1)
+                }
+              />
+            </PaginationItem>
 
-      {/* Page Indicator */}
-      <span className="mx-4 text-sm font-medium text-foreground">
-         {pagination.page} of{" "}
-        {Math.ceil(pagination.total / pagination.pageSize)}
-      </span>
+            <span className="mx-4 text-sm font-medium text-foreground">
+              {pagination.page} of{" "}
+              {Math.ceil(pagination.total / pagination.pageSize)}
+            </span>
 
-      {/* Next */}
-      <PaginationItem>
-        <PaginationNext
-          className="cursor-pointer"
-          aria-disabled={
-            pagination.page >=
-            Math.ceil(pagination.total / pagination.pageSize)
-          }
-          onClick={() =>
-            pagination.page <
-              Math.ceil(pagination.total / pagination.pageSize) &&
-            pagination.onPageChange(pagination.page + 1)
-          }
-        />
-      </PaginationItem>
-
-    </PaginationContent>
-  </Pagination>
-)}
-
+            <PaginationItem>
+              <PaginationNext
+                className="cursor-pointer"
+                aria-disabled={
+                  pagination.page >=
+                  Math.ceil(pagination.total / pagination.pageSize)
+                }
+                onClick={() =>
+                  pagination.page <
+                    Math.ceil(pagination.total / pagination.pageSize) &&
+                  pagination.onPageChange(pagination.page + 1)
+                }
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Edit, Trash2, Mail, Globe, Search } from "lucide-react";
 import DataTable, { Column } from "@/components/dashboard/tables/DataTable";
 import AddAuthorModal from "./addAother"; // your modal
@@ -18,7 +19,7 @@ import Image from "next/image";
 export default function AuthorsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const pageSize = 5;
+  const pageSize = 10;
 
   const [deleteAuthor] = useDeleteAuthorMutation();
   const { data, isLoading } = useGetAuthorsPaginatedQuery({ page, pageSize });
@@ -37,34 +38,60 @@ export default function AuthorsPage() {
   };
 
   const columns: Column<(typeof authors)[0]>[] = [
-     {
-          key: "image_url",
-          label: "Image",
-          width: "60px",
-          render: (value) =>
-            value ? (
+    {
+      key: "index",
+      label: "Order",
+      width: "50px",
+      render: (_value, _item, index) => <span>{(index ?? 0) + 1}</span>,
+    },
+
+      {
+      key: "image_url",
+      label: "Image",
+      width: "70px",
+      render: (value) =>
+        value ? (
+          <Dialog>
+            <DialogTrigger asChild>
               <Image
                 src={value as string}
-                alt="story image"
+                alt="author image"
                 width={50}
                 height={70}
-                className="rounded-md object-cover border"
+                className="rounded-md object-cover border cursor-pointer transition-transform hover:scale-105"
                 unoptimized
               />
-            ) : (
-              <span className="text-muted-foreground text-sm">No image</span>
-            ),
-        },
+            </DialogTrigger>
+
+            <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 bg-transparent border-none shadow-none">
+              <div className="flex justify-center items-center">
+                <Image
+                  src={value as string}
+                  alt="Full preview"
+                  width={500}
+                  height={700}
+                  className="rounded-lg object-contain"
+                  unoptimized
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+        ) : (
+          <span className="text-muted-foreground text-sm">No image</span>
+        ),
+    },
     {
       key: "name",
-      label: "Author",
-      render: (value, item) => (
-        <div>
-          <div className="font-medium">{value}</div>
-          <div className="text-sm text-muted-foreground line-clamp-2">
-            {item.bio}
-          </div>
-        </div>
+      label: "Name",
+      render: (value) => <span className="font-medium">{value}</span>,
+    },
+    {
+      key: "bio",
+      label: "Bio",
+      render: (value) => (
+        <span className="text-sm text-muted-foreground line-clamp-2">
+          {value || "—"}
+        </span>
       ),
     },
     {

@@ -4,6 +4,7 @@ import { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import WithAuth from "@/components/dashboard/withAuth";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Edit, Search } from "lucide-react";
 import DataTable, { Column } from "@/components/dashboard/tables/DataTable";
 import AddStoryModal from "./addStroy";
@@ -21,7 +22,7 @@ export default function StoriesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [page, setPage] = useState(1);
-  const pageSize = 5;
+  const pageSize = 10;
 
   const { data, isLoading } = useGetStoriesPaginatedQuery(
     { page, pageSize },
@@ -35,19 +36,42 @@ export default function StoriesPage() {
 
   const columns: Column<Story>[] = [
     {
+      key: "index",
+      label: "Order",
+      width: "50px",
+      render: (_value, _item, index) => <span>{(index ?? 0) + 1}</span>,
+    },
+    {
       key: "image_url",
       label: "Image",
-      width: "60px",
+      width: "70px",
       render: (value) =>
         value ? (
-          <Image
-            src={value as string}
-            alt="story image"
-            width={50}
-            height={70}
-            className="rounded-md object-cover border"
-            unoptimized
-          />
+          <Dialog>
+            <DialogTrigger asChild>
+              <Image
+                src={value as string}
+                alt="author image"
+                width={50}
+                height={70}
+                className="rounded-md object-cover border cursor-pointer transition-transform hover:scale-105"
+                unoptimized
+              />
+            </DialogTrigger>
+
+            <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 bg-transparent border-none shadow-none">
+              <div className="flex justify-center items-center">
+                <Image
+                  src={value as string}
+                  alt="Full preview"
+                  width={500}
+                  height={700}
+                  className="rounded-lg object-contain"
+                  unoptimized
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
         ) : (
           <span className="text-muted-foreground text-sm">No image</span>
         ),
