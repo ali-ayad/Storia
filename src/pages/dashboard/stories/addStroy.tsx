@@ -1,18 +1,42 @@
 "use client";
 
-import { useState } from "react";
-import { X } from "lucide-react";
-import { useAddStoryMutation } from "@/Api/storiesApi";
+import { useEffect, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import { useAddStoryMutation, useUpdateStoryMutation } from "@/Api/storiesApi";
 import { useGetAuthorsQuery } from "@/Api/authorsApi";
 import { toast } from "sonner";
 import ImageUpload from "@/components/ImageUpload";
+import type { Story } from "@/Api/storiesApi";
 
-interface AddStoryModalProps {
+interface StoryModalProps {
   isOpen: boolean;
   onClose: () => void;
+  story?: Story | null;
 }
 
-export default function AddStoryModal({ isOpen, onClose }: AddStoryModalProps) {
+export default function StoryModal({
+  isOpen,
+  onClose,
+  story,
+}: StoryModalProps) {
+  const isEdit = !!story;
+
   const [formData, setFormData] = useState({
     title: "",
     content: "",
@@ -21,123 +45,155 @@ export default function AddStoryModal({ isOpen, onClose }: AddStoryModalProps) {
   });
 
   const { data: authors = [] } = useGetAuthorsQuery();
-  const [addStory, { isLoading }] = useAddStoryMutation();
+  const [addStory, { isLoading: adding }] = useAddStoryMutation();
+  const [updateStory, { isLoading: updating }] = useUpdateStoryMutation();
 
-  if (!isOpen) return null;
+  // ✅ Prefill data when editing or reset when adding
+  useEffect(() => {
+    if (story) {
+      setFormData({
+        title: story.title ?? "",
+        content: story.content ?? "",
+        author: story.author_id ?? "",
+        image_url: story.image_url ?? "",
+      });
+    } else {
+      setFormData({ title: "", content: "", author: "", image_url: "" });
+    }
+  }, [story, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newStory = {
-      title: formData.title,
-      content: formData.content,
-      author_id: formData.author,
-      image_url: formData.image_url || null,
-    };
-
     try {
-      await addStory(newStory).unwrap();
-      toast.success("Story added ✅");
+      if (isEdit) {
+        await updateStory({
+          id: story!.id,
+          updates: {
+            title: formData.title,
+            content: formData.content,
+            author_id: formData.author,
+            image_url: formData.image_url || null,
+          },
+        }).unwrap();
 
-      // Reset form
-      setFormData({
-        title: "",
-        content: "",
-        author: "",
-        image_url: "",
-      });
+        toast.success("Story updated ✅");
+      } else {
+        await addStory({
+          title: formData.title,
+          content: formData.content,
+          author_id: formData.author,
+          image_url: formData.image_url || null,
+        }).unwrap();
+        toast.success("Story added ✅");
+      }
 
       onClose();
     } catch (err) {
-      console.error("Failed to add story:", err);
+      console.error("Failed to save story:", err);
       toast.error("❌ Something went wrong!");
     }
   };
+   useEffect(() => {
+    if (!isOpen) {
+      setFormData({ title: "", content: "", author: "", image_url: "" });
+    }
+  }, [isOpen]);
+
+  const handleClose = () => {
+    setFormData({ title: "", content: "", author: "", image_url: "" });
+    onClose();
+  };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-card border border-border/20 rounded-lg w-full max-w-md">
-        <div className="flex items-center justify-between p-4 border-b border-border/20">
-          <h2 className="text-lg font-semibold">Add New Story</h2>
-          <button onClick={onClose} className="p-1 hover:bg-muted rounded">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent
+        className="sm:max-w-md bg-black"
+        onInteractOutside={(e) => e.preventDefault()} // prevent accidental close when clicking backdrop
+      >
+        <DialogHeader>
+          <DialogTitle>{isEdit ? "Edit Story" : "Add New Story"}</DialogTitle>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Title */}
-          <input
-            type="text"
+          <Input
+            placeholder="Story title"
             value={formData.title}
             onChange={(e) =>
               setFormData({ ...formData, title: e.target.value })
             }
-            className="w-full px-3 py-2 bg-background border border-border/20 rounded-lg text-sm"
-            placeholder="Story title"
             required
+            className="border border-input w-full"
           />
 
           {/* Author */}
-          <select
+          <Select
             value={formData.author}
-            onChange={(e) =>
-              setFormData({ ...formData, author: e.target.value })
-            }
-            className="w-full px-3 py-2 bg-background border border-border/20 rounded-lg text-sm"
-            required
+            onValueChange={(val) => setFormData({ ...formData, author: val })}
           >
-            <option value="">Select author...</option>
-            {authors.map((author) => (
-              <option key={author.id} value={author.id}>
-                {author.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-full border border-input">
+              <SelectValue placeholder="Select author..." />
+            </SelectTrigger>
+            <SelectContent>
+              {authors.map((author) => (
+                <SelectItem key={author.id} value={author.id}>
+                  {author.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           {/* Content */}
-          <textarea
+          <Textarea
+            placeholder="Enter story content..."
+            rows={4}
             value={formData.content}
             onChange={(e) =>
               setFormData({ ...formData, content: e.target.value })
             }
-            rows={4}
-            className="w-full px-3 py-2 bg-background border border-border/20 rounded-lg text-sm"
-            placeholder="Enter content..."
             required
+            className="border border-input w-full"
           />
 
           {/* Image Upload */}
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium mb-2">
               Story Image
             </label>
-           <ImageUpload
-  bucket="stories"
-  onUploadComplete={(url) => setFormData({ ...formData, image_url: url })}
-/>
 
+            <ImageUpload
+              bucket="stories"
+              value={formData.image_url}
+              onUploadComplete={(url) =>
+                setFormData({ ...formData, image_url: url })
+              }
+            />
           </div>
 
-          {/* Buttons */}
-          <div className="flex gap-2 pt-2">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm font-medium flex-1"
-            >
-              {isLoading ? "Adding..." : "Add Story"}
-            </button>
-
-            <button
+          {/* Footer */}
+          <DialogFooter className="pt-2">
+            <Button
               type="button"
-              onClick={onClose}
-              className="bg-card border border-border/20 px-3 py-2 rounded-lg text-sm font-medium"
+              variant="outline"
+              onClick={handleClose}
+              className="border"
             >
               Cancel
-            </button>
-          </div>
+            </Button>
+            <Button type="submit" disabled={adding || updating} className="cursor-pointer">
+              {adding || updating
+                ? isEdit
+                  ? "Saving..."
+                  : "Adding..."
+                : isEdit
+                ? "Save Changes"
+                : "Add Story"}
+                
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

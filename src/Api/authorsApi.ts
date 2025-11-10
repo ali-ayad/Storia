@@ -1,7 +1,7 @@
 import { supabaseApi } from './supabaseApi'
 import { supabase } from '@/lib/supabaseClient'
 
-type Author = {
+export type Author = {
   id: string;
   created_at: string;
   name: string;

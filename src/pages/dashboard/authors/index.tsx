@@ -3,12 +3,12 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Edit, Trash2, Mail, Globe, Search } from "lucide-react";
 import DataTable, { Column } from "@/components/dashboard/tables/DataTable";
 import AddAuthorModal from "./addAother"; // your modal
 import {
+  Author,
   useDeleteAuthorMutation,
   useGetAuthorsPaginatedQuery,
 } from "@/Api/authorsApi";
@@ -18,6 +18,7 @@ import Image from "next/image";
 
 export default function AuthorsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedAuthor, setSelectedAuthor] = useState<Author | null>(null);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const pageSize = 10;
@@ -42,6 +43,20 @@ export default function AuthorsPage() {
     }
   };
 
+  // ➕ Add
+const handleAdd = () => {
+  setSelectedAuthor(null);
+
+  setIsAddModalOpen(true);
+};
+
+// ✏️ Edit
+const handleEdit = (author: Author) => {
+  setSelectedAuthor(author);
+ 
+  setIsAddModalOpen(true);
+};
+
   const columns: Column<(typeof authors)[0]>[] = [
     {
       key: "index",
@@ -57,7 +72,7 @@ export default function AuthorsPage() {
       render: (value) =>
         value ? (
           <Dialog>
-            <DialogTrigger asChild>
+            <DialogTrigger asChild onClick={(e) => e.stopPropagation()} >
               <Image
                 src={value as string}
                 alt="author image"
@@ -123,9 +138,9 @@ export default function AuthorsPage() {
       label: "Actions",
       width: "120px",
       render: (_value, author) => (
-        <div className="flex gap-3 items-center">
+        <div className="flex gap-3 items-center" onClick={(e) => e.stopPropagation()} >
           {/* Edit Action */}
-          <button onClick={() => console.log("Edit", author)}>
+          <button onClick={() => handleEdit(author)} >
             <Edit className="w-4 h-4 text-blue-500 cursor-pointer" />
           </button>
 
@@ -151,7 +166,7 @@ export default function AuthorsPage() {
             </p>
           </div>
 
-          <Button onClick={() => setIsAddModalOpen(true)} className="gap-2">
+          <Button   onClick={handleAdd} className="gap-2 cursor-pointer">
             <Plus className="h-4 w-4" />
             Add Author
           </Button>
@@ -191,6 +206,7 @@ export default function AuthorsPage() {
         <AddAuthorModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
+          author={selectedAuthor}
         />
       </div>
     </DashboardLayout>

@@ -20,6 +20,8 @@ import { DeletePopconfirm } from "@/components/DeletePopconfirm";
 
 export default function StoriesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedStory, setSelectedStory] = useState<Story | null>(null); 
+  const [isEditing, setIsEditing] = useState(false);
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -35,6 +37,19 @@ export default function StoriesPage() {
 
   const [deleteStory, { isLoading: deleting }] = useDeleteStoryMutation();
 
+  const handleAdd = () => {
+    setSelectedStory(null);
+     setIsEditing(false);
+    setIsModalOpen(true);
+  };
+
+  // ✅ Handle Edit
+  const handleEdit = (story: Story) => {
+    setSelectedStory(story);
+     setIsEditing(true);
+    setIsModalOpen(true);
+  };
+
   const columns: Column<Story>[] = [
     {
       key: "index",
@@ -49,7 +64,7 @@ export default function StoriesPage() {
       render: (value) =>
         value ? (
           <Dialog>
-            <DialogTrigger asChild>
+            <DialogTrigger asChild onClick={(e) => e.stopPropagation()} >
               <Image
                 src={value as string}
                 alt="author image"
@@ -110,9 +125,9 @@ export default function StoriesPage() {
       label: "Actions",
       width: "120px",
       render: (_value, story) => (
-        <div className="flex gap-3 items-center">
+        <div className="flex gap-3 items-center" onClick={(e) => e.stopPropagation()} >
           {/* Edit */}
-          <button onClick={() => console.log("Edit", story)}>
+           <button onClick={() => handleEdit(story)}>
             <Edit className="w-4 h-4 text-blue-500 cursor-pointer" />
           </button>
 
@@ -148,7 +163,7 @@ export default function StoriesPage() {
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold">Stories Management</h1>
             <Button
-              onClick={() => setIsModalOpen(true)}
+               onClick={handleAdd}
               className="flex items-center gap-2 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
@@ -157,7 +172,7 @@ export default function StoriesPage() {
           </div>
 
           {/* Table */}
-          <div className="bg-card rounded-lg">
+          <div className="bg-card rounded-lg ">
             {/* Search */}
             <div className="p-6 border-b border-border/20 mb-5">
               <div className="relative">
@@ -199,6 +214,7 @@ export default function StoriesPage() {
           <AddStoryModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
+             story={selectedStory}
           />
         </div>
       </DashboardLayout>

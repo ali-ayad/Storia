@@ -1,27 +1,31 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
-import { CloudUpload, Loader2 } from "lucide-react";
+import { CloudUpload, Loader2, X } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import { supabase } from "@/lib/supabaseClient";
+import { cn } from "@/lib/utils";
 
 interface ImageUploadProps {
-  bucket?: string; 
+  bucket?: string;
   onUploadComplete?: (url: string) => void;
+  value?: string | null; // ✅ add this for edit mode
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({
-  bucket = "stories", 
+  bucket = "stories",
   onUploadComplete,
+  value,
 }) => {
   const [loading, setLoading] = useState(false);
   const [uploadedImagePath, setUploadedImagePath] = useState<string | null>(null);
 
-  // 🔹 Upload to Supabase Storage
+  // ✅ initialize existing image when editing
+  useEffect(() => {
+    if (value) setUploadedImagePath(value);
+  }, [value]);
+
   const handleImageUpload = async (file: File) => {
     if (!file) return;
     setLoading(true);
@@ -29,22 +33,15 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     try {
       const fileExt = file.name.split(".").pop();
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const filePath = `${fileName}`;
 
-      const { error } = await supabase.storage
-        .from(bucket)
-        .upload(filePath, file);
-
+      const { error } = await supabase.storage.from(bucket).upload(fileName, file);
       if (error) throw error;
 
-      const { data: urlData } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(filePath);
+      const { data } = supabase.storage.from(bucket).getPublicUrl(fileName);
+      const imageUrl = data.publicUrl;
 
-      const imageUrl = urlData.publicUrl;
       setUploadedImagePath(imageUrl);
-
-      if (onUploadComplete) onUploadComplete(imageUrl);
+      onUploadComplete?.(imageUrl);
     } catch (err) {
       console.error("Upload failed:", err);
     } finally {
@@ -52,94 +49,63 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     }
   };
 
-  // 🔹 Handle input change
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const image = e.target.files?.[0];
-    if (image) handleImageUpload(image);
-  };
-
-  // 🔹 Handle drag-drop
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      await handleImageUpload(acceptedFiles[0]);
-    }
-  }, [bucket]);
+    if (acceptedFiles.length > 0) await handleImageUpload(acceptedFiles[0]);
+  }, []);
 
-  const { getRootProps, getInputProps } = useDropzone({ onDrop, noClick: true });
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop,
+    accept: { "image/*": [] },
+    multiple: false,
+  });
 
-  const removeSelectedImage = () => {
+  const removeImage = () => {
     setUploadedImagePath(null);
+    onUploadComplete?.("");
   };
 
   return (
-    <div className="space-y-3 h-full">
-      <div {...getRootProps()} className="h-full">
-        <label
-          htmlFor="dropzone-file"
-          className="relative flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer dark:bg-gray-700 dark:border-gray-600  transition"
-        >
-          {loading ? (
-            <div className="flex flex-col items-center gap-2">
-              <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
-              <p className="text-sm font-medium text-gray-600">
-                Uploading image...
-              </p>
-            </div>
-          ) : !uploadedImagePath ? (
-            <div className="text-center">
-              <div className="border p-2 rounded-md max-w-min mx-auto">
-                <CloudUpload size="1.6em" />
-              </div>
-              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                <span className="font-semibold">Drag or click to upload</span>
-              </p>
-             
-            </div>
-          ) : (
-            <div className="text-center space-y-2">
-              <Image
-                width={1000}
-                height={1000}
-                src={uploadedImagePath}
-                className="w-full object-contain max-h-32 rounded-md border"
-                alt="uploaded image"
-              />
-              <p className="text-sm font-semibold text-gray-600">
-                Image Uploaded
-              </p>
-            </div>
-          )}
-        </label>
+    <div className="w-full">
+      <div
+        {...getRootProps()}
+        className={cn(
+          "relative border-2 border-dashed rounded-lg cursor-pointer overflow-hidden transition group",
+          uploadedImagePath
+            ? "border-border hover:border-destructive"
+            : "border-border/50 hover:border-primary/50 bg-muted/10"
+        )}
+      >
+        <input {...getInputProps()} />
 
-        <Input
-          {...getInputProps()}
-          id="dropzone-file"
-          accept="image/png, image/jpeg"
-          type="file"
-          className="hidden"
-          disabled={loading || !!uploadedImagePath}
-          onChange={handleImageChange}
-        />
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+            <Loader2 className="w-6 h-6 animate-spin mb-2" />
+            <p className="text-sm font-medium">Uploading image...</p>
+          </div>
+        ) : uploadedImagePath ? (
+          <div className="relative w-full h-48">
+            <Image
+              src={uploadedImagePath}
+              alt="Uploaded preview"
+              fill
+              className="object-cover rounded-md transition group-hover:opacity-80"
+            />
+            <button
+              type="button"
+              onClick={removeImage}
+              className="absolute top-2 right-2 p-1 bg-black/60 text-white rounded-md hover:bg-black/80 transition"
+              title="Remove"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+            <CloudUpload className="w-8 h-8 mb-2" />
+            <p className="text-sm font-medium">Click or drag image to upload</p>
+          </div>
+        )}
       </div>
-
-      {!!uploadedImagePath && (
-        <div className="flex items-center justify-between">
-          <Link
-            href={uploadedImagePath}
-            className="text-gray-500 text-xs hover:underline"
-          >
-            View uploaded image
-          </Link>
-
-          <Button
-            onClick={removeSelectedImage}
-            type="button"
-            variant="secondary"
-          >
-            Remove
-          </Button>
-        </div>
-      )}
     </div>
   );
 };
