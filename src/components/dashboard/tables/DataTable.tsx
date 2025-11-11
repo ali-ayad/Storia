@@ -117,13 +117,19 @@ export default function DataTable<T extends HasId>({
                   ))}
                 </TableRow>
 
-                {expandableRow && expandedRow === item.id && (
-                  <TableRow className="bg-muted/20">
-                    <TableCell colSpan={columns.length} className="p-4">
-                      {expandableRow(item)}
-                    </TableCell>
-                  </TableRow>
-                )}
+               {expandableRow && expandedRow === item.id && (
+  <TableRow className="bg-muted/20">
+    <TableCell
+      colSpan={columns.length}
+      className="p-4 whitespace-pre-wrap break-words align-top"
+    >
+      <div className="flex flex-col gap-2 w-full">
+        {expandableRow(item)}
+      </div>
+    </TableCell>
+  </TableRow>
+)}
+
               </React.Fragment>
             ))}
           </TableBody>
