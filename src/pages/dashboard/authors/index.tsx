@@ -15,6 +15,7 @@ import {
 import { DeletePopconfirm } from "@/components/DeletePopconfirm";
 import { toast } from "sonner";
 import Image from "next/image";
+import WithAuth from "@/components/dashboard/withAuth";
 
 export default function AuthorsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -155,6 +156,8 @@ const handleEdit = (author: Author) => {
   ];
 
   return (
+     <WithAuth>
+         
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
@@ -210,5 +213,6 @@ const handleEdit = (author: Author) => {
         />
       </div>
     </DashboardLayout>
+    </WithAuth>
   );
 }

@@ -1,30 +1,51 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { Eye } from "lucide-react"
-import { useRouter } from "next/router"
-import { FormEvent, useState } from "react"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
+import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+import { toast } from "sonner";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    // Demo login: accept any credentials and set a simple cookie token
-    document.cookie = `token=demo; path=/; max-age=${60 * 60 * 24 * 7}`
-    router.push("/dashboard")
-  }
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    toast.loading("Signing in...");
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    toast.dismiss();
+
+    if (error) {
+      toast.error("Invalid credentials ❌");
+      console.error(error.message);
+      setLoading(false);
+      return;
+    }
+
+    toast.success("Welcome back 👋");
+    router.push("/dashboard");
+  };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-      
           <h1 className="text-2xl font-semibold mt-6 mb-2">Welcome Back</h1>
-          <p className="text-muted-foreground">Sign in to access your dashboard</p>
+          <p className="text-muted-foreground">
+            Sign in to access your dashboard
+          </p>
         </div>
 
         {/* Card */}
@@ -32,14 +53,13 @@ export default function LoginPage() {
           <form className="space-y-6" onSubmit={onSubmit}>
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium mb-2">
                 Email Address
               </label>
               <input
-                id="email"
                 type="email"
                 className="w-full px-4 py-3 bg-background border border-border/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-                placeholder="admin@fantasy.com"
+                placeholder="admin@yourapp.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -48,13 +68,10 @@ export default function LoginPage() {
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2">
-                Password
-              </label>
+              <label className="block text-sm font-medium mb-2">Password</label>
               <div className="relative">
                 <input
-                  id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   className="w-full px-4 py-3 bg-background border border-border/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors pr-12"
                   placeholder="Enter your password"
                   value={password}
@@ -63,9 +80,14 @@ export default function LoginPage() {
                 />
                 <button
                   type="button"
+                  onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <Eye className="w-5 h-5" />
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
             </div>
@@ -73,13 +95,12 @@ export default function LoginPage() {
             {/* Submit */}
             <button
               type="submit"
+              disabled={loading}
               className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors"
             >
-              Sign In
+              {loading ? "Signing In..." : "Sign In"}
             </button>
           </form>
-
-         
         </div>
 
         {/* Footer */}
@@ -93,5 +114,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,48 +1,44 @@
-import { useEffect, useState, ReactNode } from "react"
-import { useRouter } from "next/navigation"
+"use client";
 
-function hasTokenCookie(): boolean {
-  if (typeof document === "undefined") return false
-  return document.cookie.split(";").some((c) => c.trim().startsWith("token="))
-}
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 
 export function useAuth() {
-  const router = useRouter()
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const authenticated = hasTokenCookie()
-    setIsAuthenticated(authenticated)
-    
-    if (!authenticated) {
-      router.replace("/auth/login")
-    }
-  }, [router])
+    const verifySession = async () => {
+      const { data } = await supabase.auth.getSession();
+
+      if (data.session) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+        router.replace("/auth/login"); // redirect to your login page
+      }
+    };
+
+    verifySession();
+
+    // 🔁 Listen for sign-in/sign-out changes
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        setIsAuthenticated(false);
+        router.replace("/auth/login");
+      } else {
+        setIsAuthenticated(true);
+      }
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, [router]);
 
   return {
     isAuthenticated,
-    isLoading: isAuthenticated === null
-  }
-}
-
-/**
- * Wrap your protected content with this.
- * Example: <AuthGuard><DashboardPage /></AuthGuard>
- */
-export function AuthGuard({ children }: { children: ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth()
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) {
-    return null
-  }
-
-  return <>{children}</>
+    isLoading: isAuthenticated === null,
+  };
 }

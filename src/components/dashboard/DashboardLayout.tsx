@@ -15,6 +15,7 @@ import {
   Globe,
   BarChart3
 } from "lucide-react"
+import { supabase } from "@/lib/supabaseClient"
 
 export default function DashboardRootLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -26,6 +27,14 @@ export default function DashboardRootLayout({ children }: { children: ReactNode 
     { key: "authors", title: "Authors", href: "/dashboard/authors", icon: Users },
     { key: "settings", title: "Settings", href: "/dashboard/settings", icon: Settings },
   ]
+   const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut(); // ✅ end Supabase session
+      window.location.href = "/auth/login"; // ✅ redirect to login
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -95,10 +104,7 @@ export default function DashboardRootLayout({ children }: { children: ReactNode 
                 <span>Public Site</span>
               </Link>
               <button
-                onClick={() => {
-                  document.cookie = "token=; path=/; max-age=0"
-                  window.location.href = "/auth/login"
-                }}
+                onClick={handleLogout}
                 className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium hover:bg-muted/50 transition-colors w-full text-left"
               >
                 <LogOut className="h-4 w-4" />
