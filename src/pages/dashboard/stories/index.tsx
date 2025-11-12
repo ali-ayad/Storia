@@ -93,14 +93,15 @@ export default function StoriesPage() {
         ),
     },
     {
-      key: "title",
-      label: "Title",
-      render: (value) => (
-        <div className="font-medium">
-          {typeof value === "string" ? value : ""}
-        </div>
-      ),
-    },
+  key: "title",
+  label: "Title",
+  render: (value) => (
+    <div className="font-medium transition-colors duration-200 hover:text-primary">
+      {typeof value === "string" ? value : ""}
+    </div>
+  ),
+},
+
     {
       key: "author_id",
       label: "Author",
@@ -156,8 +157,8 @@ export default function StoriesPage() {
 }, [search]);
 
   return (
-    <WithAuth>
-      <DashboardLayout>
+    <>
+   
         <div className="space-y-6 mt-7">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -217,7 +218,7 @@ export default function StoriesPage() {
              story={selectedStory}
           />
         </div>
-      </DashboardLayout>
-    </WithAuth>
+        </>
+   
   );
 }

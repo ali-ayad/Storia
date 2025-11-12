@@ -44,8 +44,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <WithAuth>
-      <DashboardLayout>
+  
         <div className="space-y-6">
           {/* Header */}
           <div>
@@ -260,7 +259,5 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
-    </WithAuth>
   )
 }

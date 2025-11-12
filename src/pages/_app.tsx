@@ -1,35 +1,44 @@
-// pages/_app.tsx
-import Layout from "@/components/Layout";
+// src/pages/_app.tsx
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import { useRouter } from "next/router";
+
 import { Providers } from "@/providers";
-import { Toaster } from "@/components/ui/sonner"; // ✅ Import Toaster
+import { Toaster } from "@/components/ui/sonner";
+
+import Layout from "@/components/Layout"; // 🌍 Public layout
+
+import WithAuth from "@/components/dashboard/withAuth"; // 🔐 Auth protection
+import DashboardRootLayout from "@/components/dashboard/DashboardLayout";
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
-  const noLayoutPages = ["/auth/login"];
-  const isDashboardRoute = router.pathname.startsWith("/dashboard");
-  const isNoLayout = noLayoutPages.includes(router.pathname) || isDashboardRoute;
-
-  if (isNoLayout) {
-    return (
-      <Providers>
-        {/* ✅ Toaster must be above everything */}
-        <Toaster richColors closeButton expand />
-        <Component {...pageProps} />
-      </Providers>
-    );
-  }
+  const path = router.pathname;
+  const isDashboard = path.startsWith("/dashboard");
+  const isAuthPage = path.startsWith("/auth");
 
   return (
     <Providers>
-      {/* ✅ Toaster visible for all pages */}
+      {/* 🔔 Global toaster */}
       <Toaster richColors closeButton expand />
-      <Layout>
+
+      {isAuthPage ? (
+        // 🟣 Auth pages → no layout
         <Component {...pageProps} />
-      </Layout>
+      ) : isDashboard ? (
+        // 🔵 Dashboard → WithAuth + DashboardRootLayout
+        <WithAuth>
+          <DashboardRootLayout>
+            <Component {...pageProps} />
+          </DashboardRootLayout>
+        </WithAuth>
+      ) : (
+        // 🟢 Public pages → normal Layout
+        <Layout>
+          <Component {...pageProps} />
+        </Layout>
+      )}
     </Providers>
   );
 }

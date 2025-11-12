@@ -108,7 +108,7 @@ export default function StoryModal({
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent
-        className="sm:max-w-md bg-black"
+        className="sm:max-w-[800px] bg-black"
         onInteractOutside={(e) => e.preventDefault()} // prevent accidental close when clicking backdrop
       >
         <DialogHeader>

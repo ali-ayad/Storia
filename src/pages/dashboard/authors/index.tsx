@@ -156,9 +156,7 @@ const handleEdit = (author: Author) => {
   ];
 
   return (
-     <WithAuth>
-         
-    <DashboardLayout>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -212,7 +210,7 @@ const handleEdit = (author: Author) => {
           author={selectedAuthor}
         />
       </div>
-    </DashboardLayout>
-    </WithAuth>
+      </>
+    
   );
 }
