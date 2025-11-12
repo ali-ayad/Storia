@@ -4,86 +4,89 @@ import { FC } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-
-type Author = {
-  name: string;
-  avatar: string;
-  stories: number;
-  followers: number;
-};
-
-const topAuthors: Author[] = [
-  {
-    name: "Ava Stone",
-    avatar: "https://img.freepik.com/free-photo/woman-smiling_23-2148172457.jpg?w=1380&t=st=1692813200~exp=1692813800~hmac=abcd1234",
-    stories: 12,
-    followers: 3200,
-  },
-  {
-    name: "Liam Carter",
-    avatar: "https://img.freepik.com/free-photo/man-portrait_23-2148172450.jpg?w=1380&t=st=1692813200~exp=1692813800~hmac=abcd5678",
-    stories: 8,
-    followers: 2100,
-  },
-  {
-    name: "Sophia Winters",
-    avatar: "https://img.freepik.com/free-photo/portrait-of-a-young-woman_23-2148172443.jpg?w=1380&t=st=1692813200~exp=1692813800~hmac=abcd9012",
-    stories: 15,
-    followers: 4500,
-  },
-  {
-    name: "Ethan Blackwood",
-    avatar: "https://img.freepik.com/free-photo/man-smiling_23-2148172455.jpg?w=1380&t=st=1692813200~exp=1692813800~hmac=abcd3456",
-    stories: 10,
-    followers: 3800,
-  },
-];
+import { useGetAuthorsPaginatedQuery } from "@/Api/authorsApi";
+import Spinner from "@/components/spinner";
 
 const FeaturedAuthors: FC = () => {
+  // Fetch authors (page 1, small page size)
+  const { data, error, isLoading } = useGetAuthorsPaginatedQuery({
+    page: 1,
+    pageSize: 4,
+  });
+
+ if (isLoading) {
+  return (
+    <div className="flex items-center justify-center h-40">
+      <Spinner size="lg" />
+    </div>
+  );
+}
+
+  if (error || !data?.data?.length) {
+    return <p className="text-center text-muted-foreground">No authors available.</p>;
+  }
+
+  const authors = data.data.slice(-4).reverse(); // Show the latest 4 authors
+
+  
+
   return (
     <section className="mb-20">
       <div className="flex items-center justify-between mb-12">
-        <h2 className="text-3xl font-bold">Featured Authors</h2>
-        <Button variant="outline" className="hidden md:flex bg-transparent">
-          View All Authors
-        </Button>
-      </div>
+        <h2 className="text-3xl font-bold text-white">Featured Authors</h2>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-  {topAuthors.map((author) => (
-    <Link
-      key={author.name}
-      href={`/author/${author.name.toLowerCase().replace(/\s+/g, "-")}`}
-      className="group cursor-pointer"
-    >
-      <div className="relative overflow-hidden rounded-xl bg-card border border-border/20 hover:border-primary/30 transition-all duration-300 p-6 text-center">
-        <div className="w-24 h-24 mx-auto mb-4 relative overflow-hidden rounded-full">
-          <Image
-            src={author.avatar || "/placeholder.svg"}
-            alt={author.name}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        </div>
-        <h3 className="font-bold text-lg mb-2 group-hover:text-primary transition-colors">
-          {author.name}
-        </h3>
-        <div className="text-sm text-muted-foreground space-y-1">
-          <div>{author.stories} stories</div>
-          <div>{author.followers} followers</div>
-        </div>
+        {/* 🔗 Link to authors page */}
         <Button
-          size="sm"
+          asChild
           variant="outline"
-          className="mt-4 w-full bg-transparent group-hover:bg-primary/10 transition-colors"
+          className="hidden md:flex bg-transparent text-sm"
         >
-          Follow
+          <Link href="/authors">View All Authors</Link>
         </Button>
       </div>
-    </Link>
-  ))}
-</div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {authors.map((author) => (
+          <Link
+            key={author.id}
+            href={`/author/${author.id}`}
+            className="group cursor-pointer"
+          >
+            <div className="relative overflow-hidden rounded-xl bg-card border border-border/20 hover:border-primary/30 transition-all duration-300 p-6 text-center">
+              {/* 🖼 Author Avatar */}
+              <div className="w-24 h-24 mx-auto mb-4 relative overflow-hidden rounded-full">
+                <Image
+                  src={author.image_url || "/placeholder.jpg"}
+                  alt={author.name}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
+
+              {/* 🧾 Author Info */}
+              <h3 className="font-bold text-lg mb-2 text-white group-hover:text-primary transition-colors">
+                {author.name}
+              </h3>
+
+              <p className="text-sm text-muted-foreground">{author.email}</p>
+
+              {author.bio && (
+                <p className="text-xs text-white/70 mt-3 line-clamp-3 group-hover:text-white/90 transition-colors duration-500">
+                  {author.bio}
+                </p>
+              )}
+
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-4 w-full bg-transparent group-hover:bg-primary/10 transition-colors"
+              >
+                View Profile
+              </Button>
+            </div>
+          </Link>
+        ))}
+      </div>
     </section>
   );
 };
