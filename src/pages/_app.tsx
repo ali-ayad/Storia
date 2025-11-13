@@ -16,7 +16,8 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 
   const path = router.pathname;
   const isDashboard = path.startsWith("/dashboard");
-  const isAuthPage = path.startsWith("/auth");
+   const isAuthPage = path === "/auth" || path.startsWith("/auth/");
+
 
   return (
     <Providers>

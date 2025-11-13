@@ -30,6 +30,11 @@ export default function Footer() {
         {/* Bottom Section */}
         <div className="border-t border-border/20 mt-6 pt-6 flex flex-col md:flex-row justify-between items-center text-xs text-muted-foreground gap-4">
           <p>© 2024 Storia. All rights reserved.</p>
+          <p className="text-muted-foreground">
+            Developed by{" "}
+            <span className="font-medium text-foreground">Ali Ayad</span>
+          </p>
+
           <div className="flex space-x-4">
             <Link href="#" className="hover:text-foreground transition-colors">
               Privacy
