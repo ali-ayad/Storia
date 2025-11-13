@@ -46,7 +46,7 @@ if (isLoading) {
         {latestStories.map((story) => (
           <Link
             key={story.id}
-            href={`/story/${story.id}`}
+            href={`/stories/${story.id}`}
             className="group cursor-pointer"
           >
             <div className="relative overflow-hidden rounded-xl bg-card/80 backdrop-blur-sm border border-border/30 hover:border-primary/50 transition-all duration-700 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/20 group-hover:bg-card/90">

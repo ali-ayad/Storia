@@ -80,6 +80,28 @@ getStoriesPaginated: builder.query<
   providesTags: ["Stories"],
 }),
 
+// ✅ GET a single story by ID
+getStoryById: builder.query<Story, string>({
+  async queryFn(id) {
+    const { data, error } = await supabase
+      .from("stories")
+      .select(
+        `
+        *,
+        authors (
+          id,
+          name
+        )
+      `
+      )
+      .eq("id", id)
+      .single();
+
+    if (error) return { error };
+    return { data };
+  },
+  providesTags: ["Stories"],
+}),
 
 
     // ADD a new story
@@ -127,5 +149,6 @@ export const {
   useAddStoryMutation,
   useUpdateStoryMutation,
   useDeleteStoryMutation,
-   useGetStoriesPaginatedQuery,
+  useGetStoriesPaginatedQuery,
+  useGetStoryByIdQuery,
 } = storiesApi

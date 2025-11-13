@@ -49,7 +49,7 @@ const FeaturedAuthors: FC = () => {
         {authors.map((author) => (
           <Link
             key={author.id}
-            href={`/author/${author.id}`}
+            href={`/authors/${author.id}`}
             className="group cursor-pointer"
           >
             <div className="relative overflow-hidden rounded-xl bg-card border border-border/20 hover:border-primary/30 transition-all duration-300 p-6 text-center">

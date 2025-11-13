@@ -73,7 +73,7 @@ export default function AuthorsPage() {
             {authors.map((author) => (
               <Link
                 key={author.id}
-                href={`/author/${author.id}`}
+                href={`/authors/${author.id}`}
                 className="group cursor-pointer bg-card border border-border/20 rounded-xl overflow-hidden hover:border-primary/30 transition-all duration-300 p-6 text-center"
               >
                 <div className="w-24 h-24 mx-auto mb-4 relative overflow-hidden rounded-full">

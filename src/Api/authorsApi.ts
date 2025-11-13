@@ -1,5 +1,5 @@
-import { supabaseApi } from './supabaseApi'
-import { supabase } from '@/lib/supabaseClient'
+import { supabaseApi } from "./supabaseApi";
+import { supabase } from "@/lib/supabaseClient";
 
 export type Author = {
   id: string;
@@ -12,92 +12,109 @@ export type Author = {
 
 export const authorsApi = supabaseApi.injectEndpoints({
   endpoints: (builder) => ({
-    
     // ✅ GET paginated authors
-  getAuthorsPaginated: builder.query<
-  { data: Author[]; count: number },
-  { page: number; pageSize: number; search?: string }
->({
-  async queryFn({ page, pageSize, search = "" }) {
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize - 1;
+    getAuthorsPaginated: builder.query<
+      { data: Author[]; count: number },
+      { page: number; pageSize: number; search?: string }
+    >({
+      async queryFn({ page, pageSize, search = "" }) {
+        const start = (page - 1) * pageSize;
+        const end = start + pageSize - 1;
 
-    // Base query
-    let query = supabase
-      .from("authors")
-      .select("*", { count: "exact" })
-      .range(start, end)
-      .order("created_at", { ascending: false });
+        // Base query
+        let query = supabase
+          .from("authors")
+          .select("*", { count: "exact" })
+          .range(start, end)
+          .order("created_at", { ascending: false });
 
-    // 🔍 Filter by name (case-insensitive)
-    if (search.trim() !== "") {
-      query = query.ilike("name", `%${search}%`);
-    }
+        // 🔍 Filter by name (case-insensitive)
+        if (search.trim() !== "") {
+          query = query.ilike("name", `%${search}%`);
+        }
 
-    const { data, error, count } = await query;
+        const { data, error, count } = await query;
 
-    if (error) return { error };
+        if (error) return { error };
 
-    return {
-      data: {
-        data: data ?? [],
-        count: count ?? 0,
+        return {
+          data: {
+            data: data ?? [],
+            count: count ?? 0,
+          },
+        };
       },
-    };
-  },
-  providesTags: ["Authors"],
-}),
+      providesTags: ["Authors"],
+    }),
 
     // ✅ GET all authors (no pagination)
     getAuthors: builder.query<Author[], void>({
       async queryFn() {
-        const { data, error } = await supabase.from('authors').select('*')
-        if (error) return { error }
-        return { data }
+        const { data, error } = await supabase.from("authors").select("*");
+        if (error) return { error };
+        return { data };
       },
-      providesTags: ['Authors'],
+      providesTags: ["Authors"],
+    }),
+
+    // ✅ GET a single author by ID
+    getAuthorById: builder.query({
+      async queryFn(id: string) {
+        const { data, error } = await supabase
+          .from("authors")
+          .select("*")
+          .eq("id", id)
+          .single();
+
+        if (error) return { error };
+        return { data };
+      },
+      providesTags: ["Authors"],
     }),
 
     // ✅ ADD a new author
     addAuthor: builder.mutation<Author[], Partial<Author>>({
       async queryFn(newAuthor) {
         const { data, error } = await supabase
-          .from('authors')
+          .from("authors")
           .insert(newAuthor)
-          .select()
+          .select();
 
-        if (error) return { error }
-        return { data }
+        if (error) return { error };
+        return { data };
       },
-      invalidatesTags: ['Authors'],
+      invalidatesTags: ["Authors"],
     }),
 
     // ✅ UPDATE an author
-    updateAuthor: builder.mutation<Author[], { id: string; updates: Partial<Author> }>({
+    updateAuthor: builder.mutation<
+      Author[],
+      { id: string; updates: Partial<Author> }
+    >({
       async queryFn({ id, updates }) {
         const { data, error } = await supabase
-          .from('authors')
+          .from("authors")
           .update(updates)
-          .eq('id', id)
-          .select()
+          .eq("id", id)
+          .select();
 
-        if (error) return { error }
-        return { data }
+        if (error) return { error };
+        return { data };
       },
-      invalidatesTags: ['Authors'],
+      invalidatesTags: ["Authors"],
     }),
 
     // ✅ DELETE an author
     deleteAuthor: builder.mutation<{ id: string }, string>({
       async queryFn(id) {
-        const { error } = await supabase.from('authors').delete().eq('id', id)
-        if (error) return { error }
-        return { data: { id } }
+        const { error } = await supabase.from("authors").delete().eq("id", id);
+        if (error) return { error };
+        return { data: { id } };
       },
-      invalidatesTags: ['Authors'],
+      invalidatesTags: ["Authors"],
     }),
   }),
-})
+});
 
 export const {
   useGetAuthorsQuery,
@@ -105,4 +122,5 @@ export const {
   useAddAuthorMutation,
   useUpdateAuthorMutation,
   useDeleteAuthorMutation,
-} = authorsApi
+  useGetAuthorByIdQuery,
+} = authorsApi;
